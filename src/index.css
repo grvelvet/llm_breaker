@@ -81,30 +81,6 @@ html, body, #root {
   color: #34d399;
 }
 
-/* Системное модальное окно <dialog> для настроек на мобильных */
-dialog#controlsModal {
-  border: none;
-  outline: none;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-}
-dialog#controlsModal::backdrop {
-  background-color: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(4px);
-}
-
-@media (max-width: 767px) {
-  dialog#controlsModal {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    margin: 0 !important;
-    width: calc(100% - 2rem) !important;
-    max-height: 85vh !important;
-    border-radius: 1rem !important; /* rounded-2xl */
-  }
-}
-
 /* Модальное окно истории (вызывается поверх на всех экранах) */
 dialog#historyModal {
   border: none;
@@ -123,32 +99,6 @@ dialog#historyModal {
 dialog#historyModal::backdrop {
   background-color: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(4px);
-}
-
-/* Десктопная трансформация настроек в статичную панель */
-@media (min-width: 768px) {
-  dialog#controlsModal {
-    display: flex !important;
-    position: static !important;
-    width: 100% !important;
-    height: 100% !important;
-    max-height: none !important;
-    max-width: none !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 1.25rem !important; /* p-5 */
-    border-radius: 20px !important; /* rounded-2xl */
-    background-color: rgb(255 255 255) !important;
-    pointer-events: auto !important;
-    border: 1px solid rgb(226, 232, 240) !important; /* border-slate-200 */
-  }
-  .dark dialog#controlsModal {
-    background-color: rgb(15 23 42) !important; /* bg-slate-900 */
-    border-color: rgb(30, 41, 59) !important; /* border-slate-800 */
-  }
-  dialog#controlsModal::backdrop {
-    display: none !important;
-  }
 }
 
 /* Системные отступы безопасных зон */

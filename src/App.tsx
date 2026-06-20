@@ -18,8 +18,8 @@ export default function App() {
 
   return (
     <AppProvider>
-      <div className="h-[100dvh] max-h-[100dvh] w-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-250 antialiased overflow-hidden font-sans">
-        <div className="flex-1 h-full flex flex-col max-w-7xl w-full mx-auto px-4 md:px-6 lg:px-8 pb-1 md:pb-1 min-h-0 safe-pt overflow-hidden">
+      <div className="h-[100dvh] w-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-250 antialiased font-sans">
+        <div className="flex-1 h-full flex flex-col max-w-7xl w-full mx-auto px-4 md:px-6 lg:px-8 pb-1 md:pb-1 min-h-0 safe-pt">
           
           {/* Header Bar */}
           <Header
@@ -28,7 +28,7 @@ export default function App() {
           />
 
           {/* Main Layout containing Workspace editor and Sidebar parameters */}
-          <main className="flex-1 flex flex-col md:flex-row gap-4 md:gap-5 mt-2 md:mt-3 min-h-0 overflow-hidden relative">
+          <main className="flex-1 flex flex-col md:flex-row gap-4 md:gap-5 mt-2 md:mt-3 min-h-0 relative">
             {/* Interactive Editors (Input & Output) */}
             <Workspace />
 

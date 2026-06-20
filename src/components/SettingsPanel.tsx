@@ -127,7 +127,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             exit="hidden"
             variants={drawerVariants}
             transition={drawerTransition}
-            className="fixed inset-y-0 right-0 z-50 h-[100dvh] max-w-sm sm:max-w-md w-full bg-white dark:bg-slate-900 border-l border-slate-200/80 dark:border-slate-800/80 shadow-2xl flex flex-col focus:outline-none transition-colors duration-200 safe-pb md:static md:inset-auto md:z-10 md:h-full md:w-72 lg:w-80 md:max-w-none md:border md:rounded-2xl md:shadow-sm md:flex-shrink-0 md:pb-0"
+            className="fixed inset-y-0 right-0 z-50 h-[100dvh] max-w-sm sm:max-w-md w-full bg-white dark:bg-slate-900 border-l border-slate-200/80 dark:border-slate-800/80 flex flex-col focus:outline-none transition-colors duration-200 safe-pb md:static md:inset-auto md:z-10 md:h-full md:w-72 lg:w-80 md:max-w-none md:border md:rounded-2xl md:flex-shrink-0 md:pb-0"
           >
             {/* Header section */}
             <div className="flex items-center justify-between px-6 py-4 bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0">
@@ -145,7 +145,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             </div>
 
             {/* Scrollable controls */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 lg:px-6 lg:py-5 space-y-6 pb-20 relative z-10">
+            <div className="flex-1 overflow-y-auto overflow-x-visible md:overflow-visible px-5 py-4 lg:px-6 lg:py-5 space-y-6 pb-6 relative z-10">
               
               {/* Соль генерации */}
               <div className="space-y-2 flex-shrink-0">
