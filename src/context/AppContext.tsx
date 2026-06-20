@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HistoryEntry, Diagnostics, ProcessedToken } from '../types';
+import { HistoryEntry, Diagnostics, ProcessedToken, InjectStrategy, TextStyle } from '../types';
 import { obfuscateText, generateSecureKey } from '../utils/engine';
 
 interface AppContextType {
@@ -13,8 +13,10 @@ interface AppContextType {
   setShuffleSlider: (val: number) => void;
   aiSlider: number;
   setAiSlider: (val: number) => void;
-  injectStrategy: 'zero-width-spaces' | 'homoglyph-only' | 'mixed';
-  setInjectStrategy: (strategy: 'zero-width-spaces' | 'homoglyph-only' | 'mixed') => void;
+  injectStrategy: InjectStrategy;
+  setInjectStrategy: (strategy: InjectStrategy) => void;
+  textStyle: TextStyle;
+  setTextStyle: (style: TextStyle) => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
   isHighlightEnabled: boolean;
@@ -42,7 +44,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [randomSlider, setRandomSlider] = useState<number>(80);
   const [shuffleSlider, setShuffleSlider] = useState<number>(0);
   const [aiSlider, setAiSlider] = useState<number>(0);
-  const [injectStrategy, setInjectStrategy] = useState<'zero-width-spaces' | 'homoglyph-only' | 'mixed'>('zero-width-spaces');
+  const [injectStrategy, setInjectStrategy] = useState<InjectStrategy>('zero-width-spaces');
+  const [textStyle, setTextStyle] = useState<TextStyle>('normal');
 
   // Dark mode with OS preference compatibility
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -108,7 +111,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     shuffleSlider,
     aiSlider,
     injectStrategy,
-  }), [computedInputText, keySalt, randomSlider, shuffleSlider, aiSlider, injectStrategy]);
+    textStyle,
+  }), [computedInputText, keySalt, randomSlider, shuffleSlider, aiSlider, injectStrategy, textStyle]);
 
   const generateNewKey = () => {
     const nextKey = generateSecureKey();
@@ -133,6 +137,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       shuffleSlider,
       aiSlider,
       injectStrategy,
+      textStyle,
     };
 
     setHistoryArray((prev) => {
@@ -155,6 +160,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setShuffleSlider(entry.shuffleSlider);
     setAiSlider(entry.aiSlider);
     setInjectStrategy(entry.injectStrategy);
+    setTextStyle(entry.textStyle || 'normal');
   };
 
   return (
@@ -172,6 +178,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setAiSlider,
         injectStrategy,
         setInjectStrategy,
+        textStyle,
+        setTextStyle,
         isDarkMode,
         setIsDarkMode,
         isHighlightEnabled,

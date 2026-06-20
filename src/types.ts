@@ -1,5 +1,8 @@
 export type TokenType = 'text' | 'replaced' | 'token';
 
+export type InjectStrategy = 'zero-width-spaces' | 'homoglyph-only' | 'mixed';
+export type TextStyle = 'normal' | 'math-bold' | 'math-italic' | 'math-monospace' | 'math-script' | 'math-double-struck';
+
 export interface ProcessedToken {
   type: TokenType;
   char: string;
@@ -14,7 +17,8 @@ export interface HistoryEntry {
   randomSlider: number;
   shuffleSlider: number;
   aiSlider: number;
-  injectStrategy: 'zero-width-spaces' | 'homoglyph-only' | 'mixed';
+  injectStrategy: InjectStrategy;
+  textStyle: TextStyle;
 }
 
 export interface Diagnostics {
@@ -23,3 +27,4 @@ export interface Diagnostics {
   entropyLevel: 'Низкая' | 'Средняя' | 'Максимальная';
   tokenImpact: number;
 }
+

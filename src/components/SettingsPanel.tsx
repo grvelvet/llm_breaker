@@ -20,12 +20,15 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     setAiSlider,
     injectStrategy,
     setInjectStrategy,
+    textStyle,
+    setTextStyle,
     diagnostics,
     generateNewKey,
   } = useApp();
 
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<'strategy' | 'style' | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const styleDropdownRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(true);
 
   // Detect and track mobile vs desktop viewports
@@ -41,8 +44,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
   // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
+      const target = event.target as Node;
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(target) &&
+        styleDropdownRef.current && !styleDropdownRef.current.contains(target)
+      ) {
+        setActiveDropdown(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -171,8 +178,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                 />
               </div>
 
-              {/* Кастомный премиальный выпадающий список */}
-              <div className="space-y-2.5 flex-shrink-0 relative z-20" ref={dropdownRef}>
+              {/* Кастомный премиальный выпадающий список: Стратегия */}
+              <div className="space-y-2.5 flex-shrink-0 relative z-30" ref={dropdownRef}>
                 <label className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans select-none block pb-0.5">
                   Метод разделения сигнатур
                 </label>
@@ -180,9 +187,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                   <button
                     id="injectStrategyBtn"
                     type="button"
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    onClick={() => setActiveDropdown(activeDropdown === 'strategy' ? null : 'strategy')}
                     className="w-full flex items-center justify-between pl-3.5 pr-3 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg outline-none text-slate-800 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-900/40 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 cursor-pointer transition-all font-sans font-medium select-none"
-                    aria-expanded={dropdownOpen}
+                    aria-expanded={activeDropdown === 'strategy'}
                     aria-haspopup="listbox"
                   >
                     <span className="truncate">
@@ -190,11 +197,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                       {injectStrategy === 'homoglyph-only' && 'Только омоглифы'}
                       {injectStrategy === 'mixed' && 'Смешанный режим'}
                     </span>
-                    <ChevronDown className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${dropdownOpen ? 'transform rotate-180' : ''}`} />
+                    <ChevronDown className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${activeDropdown === 'strategy' ? 'transform rotate-180' : ''}`} />
                   </button>
 
                   <AnimatePresence>
-                    {dropdownOpen && (
+                    {activeDropdown === 'strategy' && (
                       <motion.ul
                         id="injectStrategyListbox"
                         role="listbox"
@@ -216,8 +223,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                               role="option"
                               aria-selected={isSelected}
                               onClick={() => {
-                                setInjectStrategy(option.value as 'zero-width-spaces' | 'homoglyph-only' | 'mixed');
-                                setDropdownOpen(false);
+                                setInjectStrategy(option.value as any);
+                                setActiveDropdown(null);
                               }}
                               className={`px-3.5 py-2 text-xs cursor-pointer flex items-start gap-2.5 transition-colors ${
                                 isSelected
@@ -227,6 +234,85 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                             >
                               <div className="flex-1 min-w-0">
                                 <div className="font-semibold truncate">{option.label}</div>
+                                <div className={`text-[10px] mt-0.5 truncate leading-relaxed ${isSelected ? 'text-brand-500/70 dark:text-brand-400/60' : 'text-slate-400 dark:text-slate-500'}`}>
+                                  {option.desc}
+                                </div>
+                              </div>
+                              {isSelected && (
+                                <Check className="w-3.5 h-3.5 text-brand-500 dark:text-brand-400 flex-shrink-0 self-center" />
+                              )}
+                            </li>
+                          );
+                        })}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Выпадающий список: Стиль символов */}
+              <div className="space-y-2.5 flex-shrink-0 relative z-20" ref={styleDropdownRef}>
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans select-none block pb-0.5">
+                  Визуальный стиль шрифта
+                </label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setActiveDropdown(activeDropdown === 'style' ? null : 'style')}
+                    className="w-full flex items-center justify-between pl-3.5 pr-3 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg outline-none text-slate-800 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-900/40 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 cursor-pointer transition-all font-sans font-medium select-none"
+                    aria-expanded={activeDropdown === 'style'}
+                    aria-haspopup="listbox"
+                  >
+                    <span className="truncate">
+                      {textStyle === 'normal' && 'Стандартный шрифт'}
+                      {textStyle === 'math-bold' && 'Жирный (Math Bold)'}
+                      {textStyle === 'math-italic' && 'Курсив (Math Italic)'}
+                      {textStyle === 'math-monospace' && 'Моноширинный'}
+                      {textStyle === 'math-script' && 'Рукописный (Script)'}
+                      {textStyle === 'math-double-struck' && 'Двойной штрих (Double Struck)'}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${activeDropdown === 'style' ? 'transform rotate-180' : ''}`} />
+                  </button>
+
+                  <AnimatePresence>
+                    {activeDropdown === 'style' && (
+                      <motion.ul
+                        role="listbox"
+                        initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.98 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute left-0 right-0 z-50 mt-1.5 py-1.5 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg shadow-xl max-h-60 overflow-y-auto focus:outline-none"
+                      >
+                        {[
+                          { value: 'normal', label: 'Стандартный шрифт', preview: 'Aa', desc: 'Без изменения регистра' },
+                          { value: 'math-bold', label: 'Жирный', preview: '𝗔𝗮', desc: 'Mathematical Bold Alphanumeric' },
+                          { value: 'math-italic', label: 'Курсив', preview: '𝘈𝘢', desc: 'Mathematical Italic' },
+                          { value: 'math-monospace', label: 'Моноширинный', preview: '𝙰𝚊', desc: 'Mathematical Monospace' },
+                          { value: 'math-script', label: 'Рукописный', preview: '𝒜𝒶', desc: 'Mathematical Script' },
+                          { value: 'math-double-struck', label: 'Двойной штрих', preview: '𝔸𝕒', desc: 'Double-struck / Blackboard' }
+                        ].map((option) => {
+                          const isSelected = textStyle === option.value;
+                          return (
+                            <li
+                              key={option.value}
+                              role="option"
+                              aria-selected={isSelected}
+                              onClick={() => {
+                                setTextStyle(option.value as any);
+                                setActiveDropdown(null);
+                              }}
+                              className={`px-3.5 py-2 text-xs cursor-pointer flex items-start gap-2.5 transition-colors ${
+                                isSelected
+                                  ? 'bg-brand-50/55 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-medium'
+                                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/60'
+                              }`}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold truncate flex items-center gap-2">
+                                  <span className="text-sm font-normal">{option.preview}</span>
+                                  {option.label}
+                                </div>
                                 <div className={`text-[10px] mt-0.5 truncate leading-relaxed ${isSelected ? 'text-brand-500/70 dark:text-brand-400/60' : 'text-slate-400 dark:text-slate-500'}`}>
                                   {option.desc}
                                 </div>

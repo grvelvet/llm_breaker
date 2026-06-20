@@ -211,12 +211,63 @@ export interface ObfuscationParams {
   shuffleSlider: number;
   aiSlider: number;
   injectStrategy: 'zero-width-spaces' | 'homoglyph-only' | 'mixed';
+  textStyle?: 'normal' | 'math-bold' | 'math-italic' | 'math-monospace' | 'math-script' | 'math-double-struck';
 }
 
 export interface ObfuscationResult {
   rawOutputText: string;
   tokens: ProcessedToken[];
   diagnostics: Diagnostics;
+}
+
+const mathFonts: Record<string, { latUpper: string, latLower: string, cyrMap: Record<string, string> }> = {
+  'math-bold': {
+    latUpper: "𝗔𝗕𝗖𝗗𝗘𝗙𝗚𝗛𝗜𝗝𝗞𝗟𝗠𝗡𝗢𝗣𝗤𝗥𝗦𝗧𝗨𝗩𝗪𝗫𝗬𝗭",
+    latLower: "𝗮𝗯𝗰𝗱𝗲𝗳𝗴𝗵𝗶𝗷𝗸𝗹𝗺𝗻𝗼𝗽𝗾𝗿𝘀𝘁𝘂𝘃𝘄𝘅𝘆𝘇",
+    cyrMap: { 'А':'𝗔', 'В':'𝗕', 'Е':'𝗘', 'З':'𝟯', 'К':'𝗞', 'М':'𝗠', 'Н':'𝗛', 'О':'𝗢', 'Р':'𝗣', 'С':'𝗖', 'Т':'𝗧', 'Х':'𝗫', 'а':'𝗮', 'е':'𝗲', 'о':'𝗼', 'р':'𝗽', 'с':'𝗰', 'х':'𝘅', 'у':'𝘆' }
+  },
+  'math-italic': {
+    latUpper: "𝘈𝘉𝘊𝘋𝘌𝘍𝘎𝘏𝘐𝘑𝘒𝘓𝘔𝘕𝘖𝘗𝘘𝘙𝘚𝘛𝘜𝘝𝘞𝘟𝘠𝘡",
+    latLower: "𝘢𝘣𝘤𝘥𝘦𝘧𝘨𝘩𝘪𝘫𝘬𝘭𝘮𝘯𝘰𝘱𝘲𝘳𝘴𝘵𝘶𝘷𝘸𝘹𝘺𝘻",
+    cyrMap: { 'А':'𝘈', 'В':'𝘉', 'Е':'𝘌', 'З':'𝘡', 'К':'𝘒', 'М':'𝘔', 'Н':'𝘏', 'О':'𝘖', 'Р':'𝘗', 'С':'𝘊', 'Т':'𝘛', 'Х':'𝘟', 'а':'𝘢', 'е':'𝘦', 'о':'𝘰', 'р':'𝘱', 'с':'𝘤', 'х':'𝘹', 'у':'𝘺' }
+  },
+  'math-monospace': {
+    latUpper: "𝙰𝙱𝙲𝙳𝙴𝙵𝙶𝙷𝙸𝙹𝙺𝙻𝙼𝙽𝙾𝙿𝚀𝚁𝚂𝚃𝚄𝚅𝚆𝚇𝚈𝚉",
+    latLower: "𝚊𝚋𝚌𝚍𝚎𝚏𝚐𝚑𝚒𝚓𝚔𝚕𝚖𝚗𝚘𝚙𝚚𝚛𝚜𝚝𝚞𝚟𝚠𝚡𝚢𝚣",
+    cyrMap: { 'А':'𝙰', 'В':'𝙱', 'Е':'𝙴', 'К':'𝙺', 'М':'𝙼', 'Н':'𝙷', 'О':'𝙾', 'Р':'𝙿', 'С':'𝙲', 'Т':'𝚃', 'Х':'𝚇', 'а':'𝚊', 'е':'𝚎', 'о':'𝚘', 'р':'𝚙', 'с':'𝚌', 'х':'𝚡', 'у':'𝚢' }
+  },
+  'math-script': {
+    latUpper: "𝒜ℬ𝒞𝒟ℰℱ𝒢ℋℐ𝒥𝒦ℒℳ𝒩𝒪𝒫𝒬ℛ𝒮𝒯𝒰𝒱𝒲𝒳𝒴𝒵",
+    latLower: "𝒶𝒷𝒸𝒹ℯ𝒻ℊ𝒽𝒾𝒿𝓀𝓁𝓂𝓃ℴ𝓅𝓆𝓇𝓈𝓉𝓊𝓋𝓌𝓍𝓎𝓏",
+    cyrMap: { 'А':'𝒜', 'В':'ℬ', 'Е':'ℰ', 'М':'ℳ', 'Н':'ℋ', 'О':'𝒪', 'Р':'𝒫', 'С':'𝒞', 'Т':'𝒯', 'Х':'𝒳', 'а':'𝒶', 'е':'ℯ', 'о':'ℴ', 'р':'𝓅', 'с':'𝒸', 'х':'𝓍', 'у':'𝓎' }
+  },
+  'math-double-struck': {
+    latUpper: "𝔸𝔹ℂ𝔻𝔼𝔽𝔾ℍ𝕀𝕁𝕂𝕃𝕄ℕ𝕆ℙℚℝ𝕊𝕋𝕌𝕍𝕎𝕏𝕐ℤ",
+    latLower: "𝕒𝕓𝕔𝕕𝕖𝕗𝕘𝕙𝕚𝕛𝕜𝕝𝕞𝕟𝕠𝕡𝕢𝕣𝕤𝕥𝕦𝕧𝕨𝕩𝕪𝕫",
+    cyrMap: { 'А':'𝔸', 'В':'𝔹', 'Е':'𝔼', 'М':'𝕄', 'Н':'ℍ', 'О':'𝕆', 'Р':'ℙ', 'С':'ℂ', 'Т':'𝕋', 'Х':'𝕏', 'а':'𝕒', 'е':'𝕖', 'о':'𝕠', 'р':'𝕡', 'с':'𝕔', 'х':'𝕩', 'у':'𝕪' }
+  }
+};
+
+export function applyStyleToChar(char: string, style?: string): string {
+  if (!style || style === 'normal') return char;
+  const config = mathFonts[style];
+  if (!config) return char;
+
+  const code = char.charCodeAt(0);
+  if (code >= 65 && code <= 90) {
+    const letters = Array.from(config.latUpper);
+    return letters[code - 65] || char;
+  }
+  if (code >= 97 && code <= 122) {
+    const letters = Array.from(config.latLower);
+    return letters[code - 97] || char;
+  }
+  
+  if (config.cyrMap[char]) {
+    return config.cyrMap[char];
+  }
+
+  return char;
 }
 
 export function obfuscateText(params: ObfuscationParams): ObfuscationResult {
@@ -227,6 +278,7 @@ export function obfuscateText(params: ObfuscationParams): ObfuscationResult {
     shuffleSlider,
     aiSlider,
     injectStrategy,
+    textStyle,
   } = params;
 
   // Приведение к прекомпозиционной схеме (NFC)
@@ -290,8 +342,13 @@ export function obfuscateText(params: ObfuscationParams): ObfuscationResult {
       const variantRand = getStableRandomWithHash(index + 500, charCode, saltHash);
       const variantIdx = Math.floor(variantRand * matches.length);
       targetChar = matches[variantIdx];
-      isReplaced = targetChar !== char;
     }
+
+    if (textStyle && textStyle !== 'normal') {
+      targetChar = applyStyleToChar(targetChar, textStyle);
+    }
+    
+    isReplaced = targetChar !== char;
 
     if (isReplaced) {
       addToken('replaced', targetChar);
