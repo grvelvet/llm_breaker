@@ -21,6 +21,9 @@ export interface HistoryEntry {
   injectStrategy: InjectStrategy;
   textStyle: TextStyle;
   translitMode: TranslitMode;
+  breakTokenizer?: boolean;
+  noiseInstructions?: boolean;
+  customNoiseInstruction?: string;
 }
 
 export interface Diagnostics {

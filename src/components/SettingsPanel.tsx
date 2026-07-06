@@ -3,18 +3,17 @@ import { useApp } from '../context/AppContext';
 import { X, RefreshCw, ChevronDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-const AccordionSection = ({ title, children, defaultOpen = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+const AccordionSection = ({ title, children, isOpen, onToggle }: { title: string, children: React.ReactNode, isOpen: boolean, onToggle: () => void }) => {
   return (
-    <div className="flex flex-col border-b border-slate-100 dark:border-slate-800/50 pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
+    <div className="flex flex-col border-b border-brand-100/50 dark:border-brand-900/30 pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
       <button 
         type="button" 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={onToggle}
         className="w-full flex justify-between items-center py-2 focus:outline-none select-none cursor-pointer group"
         aria-expanded={isOpen}
       >
-        <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider group-hover:text-slate-800 dark:group-hover:text-slate-200 transition-colors">{title}</span>
-        <ChevronDown className={`w-4 h-4 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-all ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="text-[11px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors">{title}</span>
+        <ChevronDown className={`w-4 h-4 text-brand-400/80 group-hover:text-brand-600 dark:group-hover:text-brand-300 transition-all ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       <AnimatePresence initial={false}>
         {isOpen && (
@@ -55,11 +54,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     setTextStyle,
     translitMode,
     setTranslitMode,
+    breakTokenizer,
+    setBreakTokenizer,
+    noiseInstructions,
+    setNoiseInstructions,
+    customNoiseInstruction,
+    setCustomNoiseInstruction,
     diagnostics,
     generateNewKey,
   } = useApp();
 
   const [activeDropdown, setActiveDropdown] = useState<'strategy' | 'style' | 'translit' | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<string>('Базовые параметры');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const styleDropdownRef = useRef<HTMLDivElement>(null);
   const translitDropdownRef = useRef<HTMLDivElement>(null);
@@ -189,7 +195,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             {/* Scrollable controls */}
             <div className="flex-1 overflow-y-auto overflow-x-visible md:overflow-visible px-5 py-4 lg:px-6 lg:py-5 space-y-4 pb-6 relative z-10">
               
-              <AccordionSection title="Базовые параметры" defaultOpen={true}>
+              <AccordionSection 
+                title="Базовые параметры" 
+                isOpen={openAccordion === 'Базовые параметры'}
+                onToggle={() => setOpenAccordion(openAccordion === 'Базовые параметры' ? '' : 'Базовые параметры')}
+              >
                 {/* Кастомный премиальный выпадающий список: Стратегия */}
                 <div className="space-y-2.5 flex-shrink-0 relative z-30" ref={dropdownRef}>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans select-none block pb-0.5">
@@ -297,7 +307,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="Визуальные эффекты">
+              <AccordionSection 
+                title="Визуальные эффекты"
+                isOpen={openAccordion === 'Визуальные эффекты'}
+                onToggle={() => setOpenAccordion(openAccordion === 'Визуальные эффекты' ? '' : 'Визуальные эффекты')}
+              >
                 {/* Выпадающий список: Стиль символов */}
                 <div className="space-y-2.5 flex-shrink-0 relative z-20" ref={styleDropdownRef}>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans select-none block pb-0.5">
@@ -452,7 +466,70 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                 </div>
               </AccordionSection>
 
-              <AccordionSection title="Продвинутые настройки">
+              <AccordionSection 
+                title="Продвинутые настройки"
+                isOpen={openAccordion === 'Продвинутые настройки'}
+                onToggle={() => setOpenAccordion(openAccordion === 'Продвинутые настройки' ? '' : 'Продвинутые настройки')}
+              >
+                {/* AI Tokenizer Breaking */}
+                <div className="space-y-1.5 flex-shrink-0">
+                  <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans group-hover:text-brand-500 transition-colors">Ломание токенизатора ИИ</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">Soft Hyphens, CGJ, подмена пробелов</span>
+                    </div>
+                    <div className="relative">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only" 
+                        checked={breakTokenizer} 
+                        onChange={(e) => setBreakTokenizer(e.target.checked)} 
+                      />
+                      <div className={`block w-8 h-4.5 rounded-full transition-colors ${breakTokenizer ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                      <div className={`dot absolute left-0.5 top-0.5 bg-white w-3.5 h-3.5 rounded-full transition-transform ${breakTokenizer ? 'transform translate-x-3.5' : ''}`}></div>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Noise Instructions */}
+                <div className="space-y-1.5 flex-shrink-0">
+                  <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans group-hover:text-brand-500 transition-colors">Шумовые инструкции</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">Внедрение невидимых системных промптов</span>
+                    </div>
+                    <div className="relative">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only" 
+                        checked={noiseInstructions} 
+                        onChange={(e) => setNoiseInstructions(e.target.checked)} 
+                      />
+                      <div className={`block w-8 h-4.5 rounded-full transition-colors ${noiseInstructions ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                      <div className={`dot absolute left-0.5 top-0.5 bg-white w-3.5 h-3.5 rounded-full transition-transform ${noiseInstructions ? 'transform translate-x-3.5' : ''}`}></div>
+                    </div>
+                  </label>
+                  
+                  <AnimatePresence>
+                    {noiseInstructions && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="pt-2 overflow-hidden"
+                      >
+                        <textarea
+                          value={customNoiseInstruction}
+                          onChange={(e) => setCustomNoiseInstruction(e.target.value)}
+                          className="w-full h-20 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none text-slate-700 dark:text-slate-300 transition-all font-mono"
+                          placeholder="Ваши скрытые инструкции для ИИ..."
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 {/* Слайдер Токенов AI */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-medium select-none">

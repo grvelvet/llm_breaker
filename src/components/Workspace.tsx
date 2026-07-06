@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Eye, EyeOff, Clipboard, Check, Trash2, History, ArrowUpRight } from 'lucide-react';
+import { copyToClipboard } from '../utils/clipboard';
 
 export const Workspace: React.FC = () => {
   const {
@@ -42,28 +43,30 @@ export const Workspace: React.FC = () => {
     };
   }, []);
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (!rawOutputText) return;
-    navigator.clipboard.writeText(rawOutputText).then(() => {
+    const success = await copyToClipboard(rawOutputText);
+    if (success) {
       setCopied(true);
       addToHistory();
       setTimeout(() => {
         setCopied(false);
       }, 1500);
-    }).catch((err) => {
-      console.error('Failed to copy text', err);
-    });
+    } else {
+      console.error('Failed to copy text');
+    }
   };
 
-  const handleCopyHistoryOutput = (entry: any) => {
-    navigator.clipboard.writeText(entry.outputText).then(() => {
+  const handleCopyHistoryOutput = async (entry: any) => {
+    const success = await copyToClipboard(entry.outputText);
+    if (success) {
       setCopiedId(entry.id);
       setTimeout(() => {
         setCopiedId(null);
       }, 1500);
-    }).catch((err) => {
-      console.error('Failed to copy text', err);
-    });
+    } else {
+      console.error('Failed to copy text');
+    }
   };
 
   // Dynamic colors for the AI token impact indicator

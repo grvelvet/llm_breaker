@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { HistoryEntry } from '../types';
 import { X, Download, Upload, Trash2, History, Clipboard, Check, Eye } from 'lucide-react';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface HistoryModalProps {
   isOpen: boolean;
@@ -122,15 +123,16 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
     e.target.value = ''; // Reset input target so uploading same file twice triggers change handler
   };
 
-  const handleQuickCopy = (entry: HistoryEntry) => {
-    navigator.clipboard.writeText(entry.outputText).then(() => {
+  const handleQuickCopy = async (entry: HistoryEntry) => {
+    const success = await copyToClipboard(entry.outputText);
+    if (success) {
       setCopiedId(entry.id);
       setTimeout(() => {
         setCopiedId(null);
       }, 1200);
-    }).catch((err) => {
-      console.error('Failed to copy', err);
-    });
+    } else {
+      console.error('Failed to copy');
+    }
   };
 
   const handleRestore = (entry: HistoryEntry) => {
