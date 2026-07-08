@@ -69,14 +69,6 @@ export const Workspace: React.FC = () => {
     }
   };
 
-  // Dynamic colors for the AI token impact indicator
-  let tokenImpactClass = 'text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800';
-  if (diagnostics.tokenImpact > 50) {
-    tokenImpactClass = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40';
-  } else if (diagnostics.tokenImpact > 10) {
-    tokenImpactClass = 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40';
-  }
-
   return (
     <div id="appWorkspace" className="w-full flex-1 flex flex-col gap-4 min-h-0 h-full">
       
@@ -122,12 +114,6 @@ export const Workspace: React.FC = () => {
               Результат
             </span>
             <div className="flex items-center gap-2">
-              <span
-                id="tokenImpact"
-                className={`text-[10px] sm:text-xs font-bold px-2 py-1 rounded whitespace-nowrap flex-shrink-0 transition-all duration-300 ${tokenImpactClass}`}
-              >
-                ИИ-токены: +{diagnostics.tokenImpact}%
-              </span>
               <button
                 id="toggleView"
                 onClick={() => setIsHighlightEnabled(!isHighlightEnabled)}
@@ -221,7 +207,7 @@ export const Workspace: React.FC = () => {
                 >
                   <button
                     onClick={() => restoreHistoryEntry(entry)}
-                    className="flex-1 text-left truncate text-xs font-medium text-slate-600 dark:text-slate-350 hover:text-brand-500 dark:hover:text-brand-400 transition-colors font-sans cursor-pointer focus:outline-none"
+                    className="flex-1 text-left line-clamp-2 break-words text-xs font-medium text-slate-600 dark:text-slate-350 hover:text-brand-500 dark:hover:text-brand-400 transition-colors font-sans cursor-pointer focus:outline-none"
                     title="Восстановить этот текст"
                   >
                     {entry.inputText}

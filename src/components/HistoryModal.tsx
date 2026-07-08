@@ -145,7 +145,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
       id="historyModal"
       ref={dialogRef}
       onClick={handleBackdropClick}
-      className="w-[calc(100%-2rem)] max-w-xl rounded-2xl p-6 focus:outline-none bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 text-slate-900 dark:text-slate-100 shadow-2xl transition-all"
+      className="w-[calc(100%-2rem)] max-w-xl rounded-2xl p-4 sm:p-6 focus:outline-none bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 text-slate-900 dark:text-slate-100 shadow-2xl transition-all"
     >
       <div className="flex flex-col h-full max-h-[75vh] w-full gap-4">
         
@@ -230,7 +230,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                         </span>
                       </div>
                       
-                      <p className="text-slate-800 dark:text-slate-200 font-medium truncate pr-2 font-sans">
+                      <p className="text-slate-800 dark:text-slate-200 font-medium line-clamp-3 whitespace-pre-wrap break-words pr-2 font-sans">
                         {entry.inputText}
                       </p>
 
