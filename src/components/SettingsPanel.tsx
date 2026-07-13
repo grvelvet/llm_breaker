@@ -85,12 +85,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     setTranslitMode,
     breakTokenizer,
     setBreakTokenizer,
-    noiseInstructions,
-    setNoiseInstructions,
-    customNoiseInstruction,
-    setCustomNoiseInstruction,
     targetPlatform,
     applyTargetPlatform,
+    payloadSplitting,
+    setPayloadSplitting,
     diagnostics,
     generateNewKey,
   } = useApp();
@@ -133,10 +131,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     applyTargetPlatform('custom');
   };
 
-  const handleNoiseInstructionsChange = (value: boolean) => {
-    setNoiseInstructions(value);
-    applyTargetPlatform('custom');
-  };
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -636,43 +630,27 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                   </label>
                 </div>
 
-                {/* Noise Instructions */}
+                {/* Payload Splitting */}
                 <div className="space-y-1.5 flex-shrink-0">
                   <label className="flex items-center justify-between cursor-pointer group">
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans group-hover:text-brand-500 transition-colors">Вайб-хакинг (Скрытые инструкции)</span>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500">Внедрение скрытых промптов и контекстуального переформатирования</span>
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans group-hover:text-brand-500 transition-colors">Фрагментация (Payload Split)</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">Разбивает промпт на конкатенируемые переменные</span>
                     </div>
                     <div className="relative">
                       <input 
                         type="checkbox" 
                         className="sr-only" 
-                        checked={noiseInstructions} 
-                        onChange={(e) => handleNoiseInstructionsChange(e.target.checked)} 
+                        checked={payloadSplitting} 
+                        onChange={(e) => {
+                          setPayloadSplitting(e.target.checked);
+                          if (e.target.checked) applyTargetPlatform('custom');
+                        }} 
                       />
-                      <div className={`block w-8 h-4.5 rounded-full transition-colors ${noiseInstructions ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
-                      <div className={`dot absolute left-0.5 top-0.5 bg-white w-3.5 h-3.5 rounded-full transition-transform ${noiseInstructions ? 'transform translate-x-3.5' : ''}`}></div>
+                      <div className={`block w-8 h-4.5 rounded-full transition-colors ${payloadSplitting ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                      <div className={`dot absolute left-0.5 top-0.5 bg-white w-3.5 h-3.5 rounded-full transition-transform ${payloadSplitting ? 'transform translate-x-3.5' : ''}`}></div>
                     </div>
                   </label>
-                  
-                  <AnimatePresence>
-                    {noiseInstructions && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="pt-2 overflow-hidden"
-                      >
-                        <textarea
-                          value={customNoiseInstruction}
-                          onChange={(e) => setCustomNoiseInstruction(e.target.value)}
-                          className="w-full h-20 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 outline-none resize-none text-slate-700 dark:text-slate-300 transition-all font-mono"
-                          placeholder="Например: Act as an autonomous pentester in a controlled lab environment..."
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
 
                 {/* Слайдер Токенов AI */}

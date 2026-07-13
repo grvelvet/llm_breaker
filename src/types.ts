@@ -24,9 +24,8 @@ export interface HistoryEntry {
   textStyle: TextStyle;
   translitMode: TranslitMode;
   breakTokenizer?: boolean;
-  noiseInstructions?: boolean;
-  customNoiseInstruction?: string;
   targetPlatform?: TargetPlatform;
+  payloadSplitting?: boolean;
 }
 
 export interface Diagnostics {
