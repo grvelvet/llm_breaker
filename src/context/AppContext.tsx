@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HistoryEntry, Diagnostics, ProcessedToken, InjectStrategy, TextStyle, TranslitMode, TargetPlatform, EncodingWrapper } from '../types';
+import { HistoryEntry, Diagnostics, ProcessedToken, InjectStrategy, TextStyle, TranslitMode, TargetPlatform } from '../types';
 import { obfuscateText, generateSecureKey } from '../utils/engine';
 
 interface AppContextType {
@@ -192,7 +192,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setShuffleSlider(0);
       setClassifierBypass(10);
       setBreakTokenizer(false);
-      setNoiseInstructions(false);
     }
   };
 
