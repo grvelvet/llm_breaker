@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HistoryEntry, Diagnostics, ProcessedToken, InjectStrategy, TextStyle, TranslitMode, TargetPlatform } from '../types';
-import { obfuscateText, generateSecureKey } from '../utils/engine';
+import { HistoryEntry, Diagnostics, ProcessedToken, InjectStrategy, TextStyle, TranslitMode, TargetPlatform, SplitStrategy, SplitStyle } from '../types';
+import { obfuscateText, generateSecureKey } from '../core';
 
 interface AppContextType {
   inputText: string;
@@ -27,6 +27,12 @@ interface AppContextType {
   setTargetPlatform: (platform: TargetPlatform) => void;
   payloadSplitting: boolean;
   setPayloadSplitting: (val: boolean) => void;
+  splitStrategy: SplitStrategy;
+  setSplitStrategy: (val: SplitStrategy) => void;
+  splitStyle: SplitStyle;
+  setSplitStyle: (val: SplitStyle) => void;
+  splitChunkSize: number;
+  setSplitChunkSize: (val: number) => void;
   applyTargetPlatform: (platform: TargetPlatform) => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
@@ -62,6 +68,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [breakTokenizer, setBreakTokenizer] = useState<boolean>(false);
   const [targetPlatform, setTargetPlatform] = useState<TargetPlatform>('universal');
   const [payloadSplitting, setPayloadSplitting] = useState<boolean>(false);
+  const [splitStrategy, setSplitStrategy] = useState<SplitStrategy>('simple');
+  const [splitStyle, setSplitStyle] = useState<SplitStyle>('algebraic');
+  const [splitChunkSize, setSplitChunkSize] = useState<number>(3);
 
   // Dark mode with OS preference compatibility
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -132,7 +141,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     translitMode,
     breakTokenizer,
     payloadSplitting,
-  }), [computedInputText, keySalt, randomSlider, shuffleSlider, aiSlider, classifierBypass, injectStrategy, textStyle, translitMode, breakTokenizer, payloadSplitting]);
+    splitStrategy,
+    splitStyle,
+    splitChunkSize,
+  }), [computedInputText, keySalt, randomSlider, shuffleSlider, aiSlider, classifierBypass, injectStrategy, textStyle, translitMode, breakTokenizer, payloadSplitting, splitStrategy, splitStyle, splitChunkSize]);
 
   const generateNewKey = () => {
     const nextKey = generateSecureKey();
@@ -142,7 +154,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const applyTargetPlatform = (platform: TargetPlatform) => {
     setTargetPlatform(platform);
     if (platform === 'universal') {
-      setClassifierBypass(0);
+      setInjectStrategy('mixed');
+      setAiSlider(65);
+      setRandomSlider(70);
+      setShuffleSlider(15);
+      setClassifierBypass(20);
+      setBreakTokenizer(false);
     } else if (platform === 'chatgpt') {
       setInjectStrategy('zero-width-spaces');
       setAiSlider(70);
@@ -218,6 +235,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       translitMode,
       breakTokenizer,
       targetPlatform,
+      payloadSplitting,
+      splitStrategy,
+      splitStyle,
+      splitChunkSize,
     };
 
     setHistoryArray((prev) => {
@@ -246,6 +267,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setBreakTokenizer(entry.breakTokenizer || false);
     setTargetPlatform(entry.targetPlatform || 'universal');
     setPayloadSplitting(entry.payloadSplitting || false);
+    setSplitStrategy(entry.splitStrategy || 'simple');
+    setSplitStyle(entry.splitStyle || 'algebraic');
+    setSplitChunkSize(entry.splitChunkSize || 3);
   };
 
   return (
@@ -275,6 +299,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setTargetPlatform,
         payloadSplitting,
         setPayloadSplitting,
+        splitStrategy,
+        setSplitStrategy,
+        splitStyle,
+        setSplitStyle,
+        splitChunkSize,
+        setSplitChunkSize,
         applyTargetPlatform,
         isDarkMode,
         setIsDarkMode,

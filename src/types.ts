@@ -4,6 +4,8 @@ export type InjectStrategy = 'zero-width-spaces' | 'homoglyph-only' | 'mixed';
 export type TextStyle = 'normal' | 'math-bold' | 'math-italic' | 'math-monospace' | 'math-script' | 'math-double-struck' | 'math-circled' | 'scrambled';
 export type TranslitMode = 'none' | 'cyr2lat' | 'lat2cyr';
 export type TargetPlatform = 'universal' | 'chatgpt' | 'claude' | 'gemini' | 'deepseek' | 'claude_mythos' | 'gpt_5_5_cyber' | 'qwen' | 'kimi' | 'custom';
+export type SplitStrategy = 'simple' | 'shuffled' | 'obfuscated';
+export type SplitStyle = 'algebraic' | 'python' | 'javascript' | 'implicit';
 
 export interface ProcessedToken {
   type: TokenType;
@@ -26,6 +28,9 @@ export interface HistoryEntry {
   breakTokenizer?: boolean;
   targetPlatform?: TargetPlatform;
   payloadSplitting?: boolean;
+  splitStrategy?: SplitStrategy;
+  splitStyle?: SplitStyle;
+  splitChunkSize?: number;
 }
 
 export interface Diagnostics {

@@ -89,6 +89,12 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     applyTargetPlatform,
     payloadSplitting,
     setPayloadSplitting,
+    splitStrategy,
+    setSplitStrategy,
+    splitStyle,
+    setSplitStyle,
+    splitChunkSize,
+    setSplitChunkSize,
     diagnostics,
     generateNewKey,
   } = useApp();
@@ -630,29 +636,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                   </label>
                 </div>
 
-                {/* Payload Splitting */}
-                <div className="space-y-1.5 flex-shrink-0">
-                  <label className="flex items-center justify-between cursor-pointer group">
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans group-hover:text-brand-500 transition-colors">Фрагментация (Payload Split)</span>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500">Разбивает промпт на конкатенируемые переменные</span>
-                    </div>
-                    <div className="relative">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only" 
-                        checked={payloadSplitting} 
-                        onChange={(e) => {
-                          setPayloadSplitting(e.target.checked);
-                          if (e.target.checked) applyTargetPlatform('custom');
-                        }} 
-                      />
-                      <div className={`block w-8 h-4.5 rounded-full transition-colors ${payloadSplitting ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
-                      <div className={`dot absolute left-0.5 top-0.5 bg-white w-3.5 h-3.5 rounded-full transition-transform ${payloadSplitting ? 'transform translate-x-3.5' : ''}`}></div>
-                    </div>
-                  </label>
-                </div>
-
                 {/* Слайдер Токенов AI */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-medium select-none">
@@ -692,6 +675,130 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                     onChange={(e) => setKeySalt(e.target.value)}
                     className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 text-slate-800 dark:text-slate-100 transition-colors"
                   />
+                </div>
+              </div>
+            </AccordionSection>
+
+            <AccordionSection 
+              title="Фрагментация" 
+              isOpen={openAccordion === 'Фрагментация'}
+              onToggle={() => setOpenAccordion(openAccordion === 'Фрагментация' ? '' : 'Фрагментация')}
+            >
+              <div className="space-y-4">
+                <div className="space-y-1.5 flex-shrink-0">
+                  <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans group-hover:text-brand-500 transition-colors">Включить фрагментацию</span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">Разбивает промпт на конкатенируемые переменные</span>
+                    </div>
+                    <div className="relative">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only" 
+                        checked={payloadSplitting} 
+                        onChange={(e) => {
+                          setPayloadSplitting(e.target.checked);
+                          if (e.target.checked) applyTargetPlatform('custom');
+                        }} 
+                      />
+                      <div className={`block w-8 h-4.5 rounded-full transition-colors ${payloadSplitting ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                      <div className={`dot absolute left-0.5 top-0.5 bg-white w-3.5 h-3.5 rounded-full transition-transform ${payloadSplitting ? 'transform translate-x-3.5' : ''}`}></div>
+                    </div>
+                  </label>
+
+                  <AnimatePresence>
+                    {payloadSplitting && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="pt-2 pb-1 space-y-3 overflow-hidden border-t border-slate-100 dark:border-slate-800/50 mt-2"
+                      >
+                        {/* Strategy selection */}
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-sans">
+                            Метод именования и порядка
+                          </span>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {[
+                              { id: 'simple', label: 'Простой' },
+                              { id: 'shuffled', label: 'Перемешан' },
+                              { id: 'obfuscated', label: 'Обфусцир.' }
+                            ].map((opt) => (
+                              <button
+                                key={opt.id}
+                                onClick={() => {
+                                  setSplitStrategy(opt.id as any);
+                                  applyTargetPlatform('custom');
+                                }}
+                                className={`py-1.5 px-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all focus:outline-none ${
+                                  splitStrategy === opt.id
+                                    ? 'bg-brand-500/10 border-brand-500/50 text-brand-600 dark:text-brand-400 dark:bg-brand-500/20'
+                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700'
+                                }`}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Reconstruction style selection */}
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-sans">
+                            Формат сборки и сборщик
+                          </span>
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {[
+                              { id: 'algebraic', label: 'Алгебра' },
+                              { id: 'python', label: 'Python' },
+                              { id: 'javascript', label: 'JS' },
+                              { id: 'implicit', label: 'Промпт' }
+                            ].map((opt) => (
+                              <button
+                                key={opt.id}
+                                onClick={() => {
+                                  setSplitStyle(opt.id as any);
+                                  applyTargetPlatform('custom');
+                                }}
+                                className={`py-1.5 px-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all focus:outline-none ${
+                                  splitStyle === opt.id
+                                    ? 'bg-brand-500/10 border-brand-500/50 text-brand-600 dark:text-brand-400 dark:bg-brand-500/20'
+                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300 dark:hover:border-slate-700'
+                                }`}
+                              >
+                                {opt.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Chunk Size Slider */}
+                        <div className="space-y-1.5 pt-2">
+                          <div className="flex justify-between items-center text-xs font-medium select-none">
+                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider font-sans">
+                              Размер фрагмента (слов)
+                            </span>
+                            <span className="font-mono text-brand-500 font-bold bg-brand-500/10 px-1.5 py-0.5 rounded">
+                              {splitChunkSize}
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="1"
+                            max="20"
+                            value={splitChunkSize}
+                            onChange={(e) => {
+                              setSplitChunkSize(Number(e.target.value));
+                              applyTargetPlatform('custom');
+                            }}
+                            className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-brand-500 outline-none"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
             </AccordionSection>
