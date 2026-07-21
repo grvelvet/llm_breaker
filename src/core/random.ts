@@ -26,6 +26,16 @@ export function getStableRandomWithHash(charIndex: number, charCode: number, sal
 
 export function generateSecureKey(): string {
   const array = new Uint32Array(3);
-  window.crypto.getRandomValues(array);
+  try {
+    if (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.getRandomValues) {
+      globalThis.crypto.getRandomValues(array);
+    } else {
+      throw new Error('No crypto');
+    }
+  } catch {
+    array[0] = Math.floor(Math.random() * 4294967296);
+    array[1] = Math.floor(Math.random() * 4294967296);
+    array[2] = Math.floor(Math.random() * 4294967296);
+  }
   return Array.from(array, (val) => val.toString(36)).join('-').toUpperCase();
 }

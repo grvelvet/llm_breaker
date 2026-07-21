@@ -12,10 +12,10 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+        includeAssets: ['favicon.svg'],
         manifest: {
-          name: 'Text Obfuscator',
-          short_name: 'Obfuscator',
+          name: 'Omoglyph Pro',
+          short_name: 'Omoglyph',
           description: 'A tool for text obfuscation',
           theme_color: '#0f172a',
           background_color: '#0f172a',

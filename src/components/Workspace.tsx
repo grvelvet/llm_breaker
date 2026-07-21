@@ -1,7 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { Eye, EyeOff, Clipboard, Check, Trash2, History, ArrowUpRight } from 'lucide-react';
 import { copyToClipboard } from '../utils/clipboard';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { ProcessedToken, HistoryEntry } from '../types';
+
+function splitTokensByLines(tokens: ProcessedToken[]): ProcessedToken[][] {
+  const lines: ProcessedToken[][] = [];
+  let currentLine: ProcessedToken[] = [];
+
+  for (const token of tokens) {
+    const parts = token.char.split('\n');
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i]) {
+        currentLine.push({ type: token.type, char: parts[i] });
+      }
+      if (i < parts.length - 1) {
+        lines.push(currentLine);
+        currentLine = [];
+      }
+    }
+  }
+  if (currentLine.length > 0) {
+    lines.push(currentLine);
+  }
+  return lines;
+}
 
 export const Workspace: React.FC = () => {
   const {
@@ -11,15 +35,25 @@ export const Workspace: React.FC = () => {
     rawOutputText,
     isHighlightEnabled,
     setIsHighlightEnabled,
-    diagnostics,
-    addToHistory,
+        addToHistory,
     historyArray,
     restoreHistoryEntry,
+    isGenerating,
   } = useApp();
 
   const [copied, setCopied] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
+
+  const parentRef = useRef<HTMLDivElement>(null);
+  const tokenLines = useMemo(() => splitTokensByLines(tokens), [tokens]);
+
+  const rowVirtualizer = useVirtualizer({
+    count: tokenLines.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 24, // Estimate 24px height per line
+    overscan: 5,
+  });
 
   React.useEffect(() => {
     const handleResize = () => {
@@ -57,7 +91,7 @@ export const Workspace: React.FC = () => {
     }
   };
 
-  const handleCopyHistoryOutput = async (entry: any) => {
+  const handleCopyHistoryOutput = async (entry: HistoryEntry) => {
     const success = await copyToClipboard(entry.outputText);
     if (success) {
       setCopiedId(entry.id);
@@ -92,7 +126,7 @@ export const Workspace: React.FC = () => {
                 </button>
               )}
               <span id="charCount" className="text-xs font-mono text-slate-400 dark:text-slate-500 select-none">
-                {inputText.length} символов
+                {inputText.length} / {rawOutputText.length} символов
               </span>
             </div>
           </div>
@@ -101,6 +135,11 @@ export const Workspace: React.FC = () => {
               id="inputText"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                  handleCopy();
+                }
+              }}
               className="w-full h-full p-4 text-sm md:text-base bg-transparent outline-none resize-none text-slate-800 dark:text-slate-100 font-sans focus:ring-0 placeholder-slate-400/80 transition-colors"
               placeholder="Введите текст сюда..."
             />
@@ -130,36 +169,66 @@ export const Workspace: React.FC = () => {
           <div className="flex-1 min-h-0">
             <div
               id="outputText"
+              ref={parentRef}
               className={`w-full h-full p-4 text-sm md:text-base bg-transparent overflow-y-auto whitespace-pre-wrap break-words select-all cursor-text text-slate-800 dark:text-slate-100 font-sans leading-relaxed ${
                 isHighlightEnabled ? 'show-indicators' : ''
               }`}
             >
-              {tokens.length === 0 ? (
+              {isGenerating ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
+                   <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                   <span className="text-sm">Генерация...</span>
+                </div>
+              ) : tokens.length === 0 ? (
                 <span className="text-slate-400/80 select-none text-sm">Обфусцированный текст...</span>
+              ) : !isHighlightEnabled ? (
+                rawOutputText
               ) : (
-                tokens.map((tok, idx) => {
-                  if (tok.type === 'replaced') {
+                <div
+                  style={{
+                    height: `${rowVirtualizer.getTotalSize()}px`,
+                    width: '100%',
+                    position: 'relative',
+                  }}
+                >
+                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                    const lineTokens = tokenLines[virtualRow.index];
                     return (
-                      <span
-                        key={idx}
-                        className={isHighlightEnabled ? 'replaced-node' : ''}
+                      <div
+                        key={virtualRow.index}
+                        data-index={virtualRow.index}
+                        ref={rowVirtualizer.measureElement}
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          transform: `translateY(${virtualRow.start}px)`,
+                        }}
                       >
-                        {tok.char}
-                      </span>
+                        {lineTokens.map((tok: ProcessedToken, idx: number) => {
+                          if (tok.type === 'replaced') {
+                            return (
+                              <span key={idx} className="replaced-node">
+                                {tok.char}
+                              </span>
+                            );
+                          } else if (tok.type === 'token') {
+                            return (
+                              <span key={idx} className="token-break-node">
+                                {tok.char}
+                              </span>
+                            );
+                          } else {
+                            return <React.Fragment key={idx}>{tok.char}</React.Fragment>;
+                          }
+                        })}
+                        {/* Always append a newline since we split by it, except maybe the last line, but pre-wrap needs it to keep line height if empty */}
+                        {virtualRow.index < tokenLines.length - 1 ? '\n' : ''}
+                      </div>
                     );
-                  } else if (tok.type === 'token') {
-                     return (
-                       <span
-                         key={idx}
-                         className={isHighlightEnabled ? 'token-break-node' : ''}
-                       >
-                         {tok.char}
-                       </span>
-                     );
-                  } else {
-                    return <React.Fragment key={idx}>{tok.char}</React.Fragment>;
-                  }
-                })
+                  })}
+                </div>
               )}
             </div>
           </div>

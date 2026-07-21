@@ -1,4 +1,4 @@
-import { ProcessedToken } from '../../types';
+import { ProcessedToken } from '../types';
 import { getStableRandomWithHash } from './random';
 
 const RE_WORD_OR_NUM = /\p{L}|\p{N}/u;
@@ -9,9 +9,13 @@ export function applyTokenizerBreaker(tokens: ProcessedToken[], saltHash: number
   let markerCount = 0;
   const newTokens: ProcessedToken[] = [];
   
+  let globalOffset = 0;
+
   for (const token of tokens) {
     if (token.type === 'token') {
        newTokens.push(token);
+       // We can optionally advance globalOffset here, but not necessary since we don't process chars
+       globalOffset += Array.from(token.char).length;
        continue;
     }
     
@@ -22,11 +26,12 @@ export function applyTokenizerBreaker(tokens: ProcessedToken[], saltHash: number
       const char = tokenChars[i];
       
       if (char === ' ') {
-        const spaceProb = getStableRandomWithHash(i + 5000, 32, saltHash);
+        const spaceProb = getStableRandomWithHash(globalOffset + 5000, 32, saltHash);
         if (spaceProb < 0.5) { 
           const replacer = SPACE_REPLACEMENTS[Math.floor(spaceProb * 2 * SPACE_REPLACEMENTS.length)];
           brokenChar += replacer;
           markerCount++;
+          globalOffset++;
           continue;
         }
       }
@@ -34,13 +39,14 @@ export function applyTokenizerBreaker(tokens: ProcessedToken[], saltHash: number
       brokenChar += char;
       if (RE_WORD_OR_NUM.test(char)) {
         const charCode = char.codePointAt(0) || 0;
-        const breakProb = getStableRandomWithHash(i + 4000, charCode, saltHash);
+        const breakProb = getStableRandomWithHash(globalOffset + 4000, charCode, saltHash);
         if (breakProb < 0.4) { 
           const breaker = BREAKING_CHARS[Math.floor(breakProb * 2.5 * BREAKING_CHARS.length)];
           brokenChar += breaker;
           markerCount++;
         }
       }
+      globalOffset++;
     }
     
     newTokens.push({ type: token.type, char: brokenChar });

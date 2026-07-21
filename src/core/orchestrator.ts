@@ -1,4 +1,4 @@
-import { ProcessedToken, Diagnostics, TokenType } from '../../types';
+import { ProcessedToken, Diagnostics, TokenType, InjectStrategy, TextStyle, TranslitMode, SplitStrategy, SplitStyle } from '../types';
 import { fnv1a, getStableRandomWithHash } from './random';
 import { characterMatrix, invisiblePool, mathFonts } from './constants';
 import { stableShuffleWords, stableInjectTypos, transliterateText, applyStyleToChar } from './transformers';
@@ -14,13 +14,13 @@ export interface ObfuscationParams {
   shuffleSlider: number;
   aiSlider: number;
   classifierBypass?: number;
-  injectStrategy: 'zero-width-spaces' | 'homoglyph-only' | 'mixed';
-  textStyle?: 'normal' | 'math-bold' | 'math-italic' | 'math-monospace' | 'math-script' | 'math-double-struck' | 'math-circled' | 'scrambled';
-  translitMode?: 'none' | 'cyr2lat' | 'lat2cyr';
+  injectStrategy: InjectStrategy;
+  textStyle?: TextStyle;
+  translitMode?: TranslitMode;
   breakTokenizer?: boolean;
   payloadSplitting?: boolean;
-  splitStrategy?: 'simple' | 'shuffled' | 'obfuscated';
-  splitStyle?: 'algebraic' | 'python' | 'javascript' | 'implicit';
+  splitStrategy?: SplitStrategy;
+  splitStyle?: SplitStyle;
   splitChunkSize?: number;
 }
 
@@ -113,7 +113,7 @@ export function obfuscateText(params: ObfuscationParams): ObfuscationResult {
     const shouldReplace = hasMatches && prob < mixRate;
 
     let targetChar = char;
-    let isReplaced = false;
+    
 
     if (shouldReplace) {
       const variantRand = getStableRandomWithHash(index + 500, charCode, saltHash);
@@ -132,7 +132,7 @@ export function obfuscateText(params: ObfuscationParams): ObfuscationResult {
       }
     }
     
-    isReplaced = targetChar !== char;
+    const isReplaced = targetChar !== char;
 
     if (isReplaced) {
       addToken('replaced', targetChar);
@@ -180,7 +180,7 @@ export function obfuscateText(params: ObfuscationParams): ObfuscationResult {
 
   if (payloadSplitting) {
     const splitResult = splitPayload(
-      finalRawOutputText,
+      finalTokens,
       saltHash,
       splitChunkSize,
       splitStrategy,
@@ -188,7 +188,7 @@ export function obfuscateText(params: ObfuscationParams): ObfuscationResult {
     );
     
     finalRawOutputText = splitResult.text;
-    finalTokens = [{ type: 'replaced', char: finalRawOutputText }];
+    finalTokens = splitResult.tokens;
     markerCount += splitResult.markerCount;
   }
 

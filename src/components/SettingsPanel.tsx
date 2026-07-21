@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, RefreshCw, ChevronDown, Check, Globe, Sliders, Shield, Terminal, Zap, Ghost } from 'lucide-react';
+import { X, RefreshCw, ChevronDown, Check, Globe, Sliders, Shield, Terminal, Ghost } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Custom brand logos for the platforms to look extremely authentic and high-quality
@@ -29,6 +29,80 @@ const DeepSeekLogo = ({ className }: { className?: string }) => (
     <path d="M9 10c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2z" opacity="0.3" />
   </svg>
 );
+
+
+const Dropdown = ({ 
+  label, 
+  value, 
+  options, 
+  onChange, 
+  isOpen, 
+  onToggle, 
+  containerRef 
+}: { 
+  label: string, 
+  value: string, 
+  options: {value: string, label: string, desc: string}[], 
+  onChange: (val: string) => void,
+  isOpen: boolean,
+  onToggle: () => void,
+  containerRef: React.RefObject<HTMLDivElement | null>
+}) => {
+  const selectedOption = options.find(o => o.value === value) || options[0];
+  return (
+    <div className="space-y-2.5 flex-shrink-0 relative z-30" ref={containerRef}>
+      <label className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans select-none block pb-0.5">
+        {label}
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="w-full flex items-center justify-between pl-3.5 pr-3 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg outline-none text-slate-800 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-900/40 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 cursor-pointer transition-all font-sans font-medium select-none"
+        >
+          <span className="truncate">{selectedOption.label}</span>
+          <ChevronDown className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} />
+        </button>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.ul
+              initial={{ opacity: 0, y: -4, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -4, scale: 0.98 }}
+              transition={{ duration: 0.15 }}
+              className="absolute left-0 right-0 z-50 mt-1.5 py-1.5 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg shadow-xl max-h-60 overflow-y-auto focus:outline-none"
+            >
+              {options.map((option) => {
+                const isSelected = value === option.value;
+                return (
+                  <li
+                    key={option.value}
+                    onClick={() => { onChange(option.value); onToggle(); }}
+                    className={`px-3.5 py-2.5 text-xs cursor-pointer flex justify-between items-center transition-colors ${
+                      isSelected
+                        ? 'bg-brand-50/50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400'
+                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/60'
+                    }`}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold truncate">{option.label}</div>
+                      <div className={`text-[10px] mt-0.5 truncate leading-relaxed ${isSelected ? 'text-brand-500/70 dark:text-brand-400/60' : 'text-slate-400 dark:text-slate-500'}`}>
+                        {option.desc}
+                      </div>
+                    </div>
+                    {isSelected && (
+                      <Check className="w-3.5 h-3.5 text-brand-500 dark:text-brand-400 flex-shrink-0 self-center" />
+                    )}
+                  </li>
+                );
+              })}
+            </motion.ul>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
 
 const AccordionSection = ({ title, children, isOpen, onToggle }: { title: string, children: React.ReactNode, isOpen: boolean, onToggle: () => void }) => {
   return (
@@ -109,32 +183,26 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
 
   const handleInjectStrategyChange = (value: string) => {
     setInjectStrategy(value as any);
-    applyTargetPlatform('custom');
   };
 
   const handleRandomSliderChange = (value: number) => {
     setRandomSlider(value);
-    applyTargetPlatform('custom');
   };
 
   const handleShuffleSliderChange = (value: number) => {
     setShuffleSlider(value);
-    applyTargetPlatform('custom');
   };
 
   const handleAiSliderChange = (value: number) => {
     setAiSlider(value);
-    applyTargetPlatform('custom');
   };
 
   const handleClassifierBypassChange = (value: number) => {
     setClassifierBypass(value);
-    applyTargetPlatform('custom');
   };
 
   const handleBreakTokenizerChange = (value: boolean) => {
     setBreakTokenizer(value);
-    applyTargetPlatform('custom');
   };
 
   useEffect(() => {
@@ -212,8 +280,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
       };
 
   const drawerTransition = isMobile
-    ? { type: 'spring', damping: 26, stiffness: 220 }
-    : { duration: 0.25, ease: 'easeOut' };
+    ? { type: 'spring' as const, damping: 26, stiffness: 220 }
+    : { duration: 0.25, ease: 'easeOut' as const };
 
   return (
     <AnimatePresence>
@@ -326,79 +394,22 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                     Сигнатуры и Опечатки
                   </h4>
 
-                  {/* Кастомный премиальный выпадающий список: Стратегия */}
-                  <div className="space-y-2.5 flex-shrink-0 relative z-30" ref={dropdownRef}>
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans select-none block pb-0.5">
-                    Метод разделения сигнатур
-                  </label>
-                  <div className="relative">
-                    <button
-                      id="injectStrategyBtn"
-                      type="button"
-                      onClick={() => setActiveDropdown(activeDropdown === 'strategy' ? null : 'strategy')}
-                      className="w-full flex items-center justify-between pl-3.5 pr-3 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg outline-none text-slate-800 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-900/40 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 cursor-pointer transition-all font-sans font-medium select-none"
-                      aria-expanded={activeDropdown === 'strategy'}
-                      aria-haspopup="listbox"
-                    >
-                      <span className="truncate">
-                        {injectStrategy === 'zero-width-spaces' && 'Невидимые разделители (ZWS)'}
-                        {injectStrategy === 'homoglyph-only' && 'Только омоглифы'}
-                        {injectStrategy === 'mixed' && 'Смешанный режим'}
-                      </span>
-                      <ChevronDown className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${activeDropdown === 'strategy' ? 'transform rotate-180' : ''}`} />
-                    </button>
-
-                    <AnimatePresence>
-                      {activeDropdown === 'strategy' && (
-                        <motion.ul
-                          id="injectStrategyListbox"
-                          role="listbox"
-                          initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute left-0 right-0 z-50 mt-1.5 py-1.5 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg shadow-xl max-h-60 overflow-y-auto focus:outline-none"
-                        >
-                          {[
-                            { value: 'zero-width-spaces', label: 'Невидимые разделители (ZWS)', desc: 'Скрытые символы нулевой ширины' },
-                            { value: 'homoglyph-only', label: 'Только омоглифы', desc: 'Визуально идентичные начертания' },
-                            { value: 'mixed', label: 'Смешанный режим', desc: 'Комбинация двух лучших методов' }
-                          ].map((option) => {
-                            const isSelected = injectStrategy === option.value;
-                            return (
-                              <li
-                                key={option.value}
-                                role="option"
-                                aria-selected={isSelected}
-                                onClick={() => {
-                                  handleInjectStrategyChange(option.value);
-                                  setActiveDropdown(null);
-                                }}
-                                className={`px-3.5 py-2 text-xs cursor-pointer flex items-start gap-2.5 transition-colors ${
-                                  isSelected
-                                    ? 'bg-brand-50/55 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-medium'
-                                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/60'
-                                }`}
-                              >
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-semibold truncate">{option.label}</div>
-                                  <div className={`text-[10px] mt-0.5 truncate leading-relaxed ${isSelected ? 'text-brand-500/70 dark:text-brand-400/60' : 'text-slate-400 dark:text-slate-500'}`}>
-                                    {option.desc}
-                                  </div>
-                                </div>
-                                {isSelected && (
-                                  <Check className="w-3.5 h-3.5 text-brand-500 dark:text-brand-400 flex-shrink-0 self-center" />
-                                )}
-                              </li>
-                            );
-                          })}
-                        </motion.ul>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-
-                {/* Слайдер Омоглифов */}
+                  
+                <Dropdown
+                  label="Метод разделения сигнатур"
+                  value={injectStrategy}
+                  options={[
+                    { value: 'zero-width-spaces', label: 'Невидимые разделители (ZWS)', desc: 'Скрытые символы нулевой ширины' },
+                    { value: 'homoglyph-only', label: 'Только омоглифы', desc: 'Визуально идентичные начертания' },
+                    { value: 'mixed', label: 'Смешанный режим', desc: 'Комбинация двух лучших методов' }
+                  ]}
+                  onChange={handleInjectStrategyChange}
+                  isOpen={activeDropdown === 'strategy'}
+                  onToggle={() => setActiveDropdown(activeDropdown === 'strategy' ? null : 'strategy')}
+                  containerRef={dropdownRef}
+                />
+                
+{/* Слайдер Омоглифов */}
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-xs font-medium select-none">
                     <span className="text-slate-600 dark:text-slate-300 font-sans">Замена омоглифов</span>
@@ -456,158 +467,40 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                   Стилизация текста
                 </h4>
 
-                {/* Выпадающий список: Стиль символов */}
-                <div className="space-y-2.5 flex-shrink-0 relative z-20" ref={styleDropdownRef}>
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans select-none block pb-0.5">
-                    Визуальный стиль шрифта
-                  </label>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setActiveDropdown(activeDropdown === 'style' ? null : 'style')}
-                      className="w-full flex items-center justify-between pl-3.5 pr-3 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg outline-none text-slate-800 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-900/40 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 cursor-pointer transition-all font-sans font-medium select-none"
-                      aria-expanded={activeDropdown === 'style'}
-                      aria-haspopup="listbox"
-                    >
-                      <span className="truncate">
-                        {textStyle === 'normal' && 'Стандартный шрифт'}
-                        {textStyle === 'math-bold' && 'Жирный (Math Bold)'}
-                        {textStyle === 'math-italic' && 'Курсив (Math Italic)'}
-                        {textStyle === 'math-monospace' && 'Моноширинный'}
-                        {textStyle === 'math-script' && 'Рукописный (Script)'}
-                        {textStyle === 'math-double-struck' && 'Двойной штрих (Double Struck)'}
-                        {textStyle === 'math-circled' && 'В кружочках (Circled)'}
-                        {textStyle === 'scrambled' && 'Скремблинг (Микс)'}
-                      </span>
-                      <ChevronDown className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${activeDropdown === 'style' ? 'transform rotate-180' : ''}`} />
-                    </button>
+                
+                <Dropdown
+                  label="Визуальный стиль шрифта"
+                  value={textStyle}
+                  options={[
+                    { value: 'normal', label: 'Обычный текст', desc: 'Стандартные символы (без стилизации)' },
+                    { value: 'math-bold', label: 'Математический Bold', desc: 'Жирный шрифт Юникода' },
+                    { value: 'math-italic', label: 'Математический Italic', desc: 'Курсивный шрифт Юникода' },
+                    { value: 'math-monospace', label: 'Математический Monospace', desc: 'Моноширинный шрифт Юникода' },
+                    { value: 'math-script', label: 'Математический Script', desc: 'Рукописный шрифт Юникода' },
+                    { value: 'math-double-struck', label: 'Математический Double Struck', desc: 'Двойное начертание' },
+                    { value: 'math-circled', label: 'Математический Circled', desc: 'Символы в кружочках' },
+                    { value: 'scrambled', label: 'Скремблинг', desc: 'Случайный стиль для букв' }
+                  ]}
+                  onChange={(v) => setTextStyle(v as any)}
+                  isOpen={activeDropdown === 'style'}
+                  onToggle={() => setActiveDropdown(activeDropdown === 'style' ? null : 'style')}
+                  containerRef={styleDropdownRef}
+                />
+                
 
-                    <AnimatePresence>
-                      {activeDropdown === 'style' && (
-                        <motion.ul
-                          role="listbox"
-                          initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute left-0 right-0 z-50 mt-1.5 py-1.5 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg shadow-xl max-h-60 overflow-y-auto focus:outline-none"
-                        >
-                          {[
-                            { value: 'normal', label: 'Стандартный шрифт', preview: 'Aa', desc: 'Без изменения регистра' },
-                            { value: 'math-bold', label: 'Жирный', preview: '𝗔𝗮', desc: 'Mathematical Bold Alphanumeric' },
-                            { value: 'math-italic', label: 'Курсив', preview: '𝘈𝘢', desc: 'Mathematical Italic' },
-                            { value: 'math-monospace', label: 'Моноширинный', preview: '𝙰𝚊', desc: 'Mathematical Monospace' },
-                            { value: 'math-script', label: 'Рукописный', preview: '𝒜𝒶', desc: 'Mathematical Script' },
-                            { value: 'math-double-struck', label: 'Двойной штрих', preview: '𝔸𝕒', desc: 'Double-struck / Blackboard' },
-                            { value: 'math-circled', label: 'В кружочках', preview: 'Ⓐⓐ', desc: 'Enclosed Alphanumerics' },
-                            { value: 'scrambled', label: 'Скремблинг', preview: 'A𝕓𝘤', desc: 'Случайный стиль для букв' }
-                          ].map((option) => {
-                            const isSelected = textStyle === option.value;
-                            return (
-                              <li
-                                key={option.value}
-                                role="option"
-                                aria-selected={isSelected}
-                                onClick={() => {
-                                  setTextStyle(option.value as any);
-                                  setActiveDropdown(null);
-                                }}
-                                className={`px-3.5 py-2 text-xs cursor-pointer flex items-start gap-2.5 transition-colors ${
-                                  isSelected
-                                    ? 'bg-brand-50/55 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-medium'
-                                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/60'
-                                }`}
-                              >
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-semibold truncate flex items-center gap-2">
-                                    <span className="text-sm font-normal">{option.preview}</span>
-                                    {option.label}
-                                  </div>
-                                  <div className={`text-[10px] mt-0.5 truncate leading-relaxed ${isSelected ? 'text-brand-500/70 dark:text-brand-400/60' : 'text-slate-400 dark:text-slate-500'}`}>
-                                    {option.desc}
-                                  </div>
-                                </div>
-                                {isSelected && (
-                                  <Check className="w-3.5 h-3.5 text-brand-500 dark:text-brand-400 flex-shrink-0 self-center" />
-                                )}
-                              </li>
-                            );
-                          })}
-                        </motion.ul>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-
-                {/* Выпадающий список: Транслитерация */}
-                <div className="space-y-2.5 flex-shrink-0 relative z-10" ref={translitDropdownRef}>
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans select-none block pb-0.5">
-                    Транслитерация текста
-                  </label>
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setActiveDropdown(activeDropdown === 'translit' ? null : 'translit')}
-                      className="w-full flex items-center justify-between pl-3.5 pr-3 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg outline-none text-slate-800 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-900/40 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 cursor-pointer transition-all font-sans font-medium select-none"
-                      aria-expanded={activeDropdown === 'translit'}
-                      aria-haspopup="listbox"
-                    >
-                      <span className="truncate">
-                        {translitMode === 'none' && 'Выключена'}
-                        {translitMode === 'cyr2lat' && 'Кириллица -> Латиница'}
-                        {translitMode === 'lat2cyr' && 'Латиница -> Кириллица'}
-                      </span>
-                      <ChevronDown className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${activeDropdown === 'translit' ? 'transform rotate-180' : ''}`} />
-                    </button>
-
-                    <AnimatePresence>
-                      {activeDropdown === 'translit' && (
-                        <motion.ul
-                          role="listbox"
-                          initial={{ opacity: 0, y: -4, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -4, scale: 0.98 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute left-0 right-0 z-50 mt-1.5 py-1.5 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg shadow-xl max-h-60 overflow-y-auto focus:outline-none"
-                        >
-                          {[
-                            { value: 'none', label: 'Выключена', desc: 'Оригинальный текст' },
-                            { value: 'cyr2lat', label: 'Кириллица -> Латиница', desc: 'Конвертация кириллицы в транслит' },
-                            { value: 'lat2cyr', label: 'Латиница -> Кириллица', desc: 'Конвертация транслита в кириллицу' }
-                          ].map((option) => {
-                            const isSelected = translitMode === option.value;
-                            return (
-                              <li
-                                key={option.value}
-                                role="option"
-                                aria-selected={isSelected}
-                                onClick={() => {
-                                  setTranslitMode(option.value as any);
-                                  setActiveDropdown(null);
-                                }}
-                                className={`px-3.5 py-2 text-xs cursor-pointer flex items-start gap-2.5 transition-colors ${
-                                  isSelected
-                                    ? 'bg-brand-50/55 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-medium'
-                                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/60'
-                                }`}
-                              >
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-semibold truncate">{option.label}</div>
-                                  <div className={`text-[10px] mt-0.5 truncate leading-relaxed ${isSelected ? 'text-brand-500/70 dark:text-brand-400/60' : 'text-slate-400 dark:text-slate-500'}`}>
-                                    {option.desc}
-                                  </div>
-                                </div>
-                                {isSelected && (
-                                  <Check className="w-3.5 h-3.5 text-brand-500 dark:text-brand-400 flex-shrink-0 self-center" />
-                                )}
-                              </li>
-                            );
-                          })}
-                        </motion.ul>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
+                <Dropdown
+                  label="Транслитерация текста"
+                  value={translitMode}
+                  options={[
+                    { value: 'none', label: 'Выключена', desc: 'Оригинальный текст' },
+                    { value: 'cyr2lat', label: 'Кириллица → Латиница', desc: 'Замена кириллических букв на латинские омоглифы' },
+                    { value: 'lat2cyr', label: 'Латиница → Кириллица', desc: 'Замена латинских букв на кириллические омоглифы' }
+                  ]}
+                  onChange={(v) => setTranslitMode(v as any)}
+                  isOpen={activeDropdown === 'translit'}
+                  onToggle={() => setActiveDropdown(activeDropdown === 'translit' ? null : 'translit')}
+                  containerRef={translitDropdownRef}
+                />
               </div>
 
               {/* Группа 3: Обход ИИ и Управление */}
@@ -653,11 +546,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                   />
                 </div>
 
-                {/* Соль генерации */}
+                {/* Сид воспроизводимости */}
                 <div className="space-y-2 flex-shrink-0">
                   <div className="flex justify-between items-center select-none">
                     <label htmlFor="cryptKey" className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans">
-                      Соль / Ключ
+                      Сид воспроизводимости
                     </label>
                     <button
                       id="generateKeyBtn"

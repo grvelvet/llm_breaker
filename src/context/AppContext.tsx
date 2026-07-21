@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { HistoryEntry, Diagnostics, ProcessedToken, InjectStrategy, TextStyle, TranslitMode, TargetPlatform, SplitStrategy, SplitStyle } from '../types';
-import { obfuscateText, generateSecureKey } from '../core';
+import { generateSecureKey } from '../core';
 
 interface AppContextType {
   inputText: string;
@@ -45,6 +46,7 @@ interface AppContextType {
   rawOutputText: string;
   tokens: ProcessedToken[];
   diagnostics: Diagnostics;
+  isGenerating?: boolean;
 
   // Actions
   generateNewKey: () => void;
@@ -93,13 +95,53 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           return parsed;
         }
       }
-    } catch (e) {
-      console.error('Error loading history', e);
+    } catch (_e: unknown) { /* ignore */
+      console.error('Error loading history', _e);
     }
     return [];
   });
 
+
+  // Restore settings on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('omoglyph_settings');
+      if (saved) {
+        const p = JSON.parse(saved);
+        if (p.keySalt) setKeySalt(p.keySalt);
+        if (p.randomSlider !== undefined) setRandomSlider(p.randomSlider);
+        if (p.shuffleSlider !== undefined) setShuffleSlider(p.shuffleSlider);
+        if (p.aiSlider !== undefined) setAiSlider(p.aiSlider);
+        if (p.classifierBypass !== undefined) setClassifierBypass(p.classifierBypass);
+        if (p.injectStrategy) setInjectStrategy(p.injectStrategy);
+        if (p.textStyle) setTextStyle(p.textStyle);
+        if (p.translitMode) setTranslitMode(p.translitMode);
+        if (p.breakTokenizer !== undefined) setBreakTokenizer(p.breakTokenizer);
+        if (p.targetPlatform) setTargetPlatform(p.targetPlatform);
+        if (p.payloadSplitting !== undefined) setPayloadSplitting(p.payloadSplitting);
+        if (p.splitStrategy) setSplitStrategy(p.splitStrategy);
+        if (p.splitStyle) setSplitStyle(p.splitStyle);
+        if (p.splitChunkSize !== undefined) setSplitChunkSize(p.splitChunkSize);
+      }
+    } catch (_e: unknown) { /* ignore */}
+  }, []);
+
+  // Save settings on change
+  useEffect(() => {
+    const settings = {
+      keySalt, randomSlider, shuffleSlider, aiSlider, classifierBypass,
+      injectStrategy, textStyle, translitMode, breakTokenizer, targetPlatform,
+      payloadSplitting, splitStrategy, splitStyle, splitChunkSize
+    };
+    try {
+      localStorage.setItem('omoglyph_settings', JSON.stringify(settings));
+    } catch (_e: unknown) { /* ignore */}
+  }, [keySalt, randomSlider, shuffleSlider, aiSlider, classifierBypass,
+      injectStrategy, textStyle, translitMode, breakTokenizer, targetPlatform,
+      payloadSplitting, splitStrategy, splitStyle, splitChunkSize]);
+
   // Calculate Dark Mode side effect
+
   useEffect(() => {
     localStorage.setItem('omoglyph_dark_mode', String(isDarkMode));
     if (isDarkMode) {
@@ -111,7 +153,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Sync history to local storage
   useEffect(() => {
-    localStorage.setItem('omoglyph_history_pro', JSON.stringify(historyArray));
+    try {
+      localStorage.setItem('omoglyph_history_pro', JSON.stringify(historyArray));
+    } catch (err: unknown) {
+      const e = err as Error;
+      if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.message?.toLowerCase().includes('quota')) {
+        console.warn('LocalStorage quota exceeded, trimming history...');
+        toast.error('Превышен лимит памяти, очистка старой истории', { id: 'quota-toast' });
+        const shrunkArray = [...historyArray];
+        while (shrunkArray.length > 1) {
+          shrunkArray.pop();
+          try {
+            localStorage.setItem('omoglyph_history_pro', JSON.stringify(shrunkArray));
+            setHistoryArray(shrunkArray);
+            break;
+          } catch (_e: unknown) { /* ignore */
+            continue;
+          }
+        }
+      } else {
+        console.error('Error saving history to local storage', e);
+      }
+    }
   }, [historyArray]);
 
   // Dynamic debouncing for large text inputs
@@ -128,23 +191,68 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [inputText]);
 
-  // Obfuscation calculations, memoized based on sliders & key inputs
-  const { rawOutputText, tokens, diagnostics } = React.useMemo(() => obfuscateText({
-    inputText: computedInputText,
-    keySalt,
-    randomSlider,
-    shuffleSlider,
-    aiSlider,
-    classifierBypass,
-    injectStrategy,
-    textStyle,
-    translitMode,
-    breakTokenizer,
-    payloadSplitting,
-    splitStrategy,
-    splitStyle,
-    splitChunkSize,
-  }), [computedInputText, keySalt, randomSlider, shuffleSlider, aiSlider, classifierBypass, injectStrategy, textStyle, translitMode, breakTokenizer, payloadSplitting, splitStrategy, splitStyle, splitChunkSize]);
+  // Obfuscation state
+  const [rawOutputText, setRawOutputText] = useState<string>('');
+  const [tokens, setTokens] = useState<ProcessedToken[]>([]);
+  const [diagnostics, setDiagnostics] = useState<Diagnostics>({
+    replacedCount: 0,
+    markerCount: 0,
+    entropyLevel: 'Низкая',
+    tokenImpact: 0,
+  });
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!computedInputText) {
+      setRawOutputText('');
+      setTokens([]);
+      setDiagnostics({
+        replacedCount: 0,
+        markerCount: 0,
+        entropyLevel: 'Низкая',
+        tokenImpact: 0,
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    // Fallback if workers aren't supported or to avoid Vite worker issues in some environments
+    // But in Vite we can just use new Worker(new URL('../workers/obfuscate.worker.ts', import.meta.url), { type: 'module' })
+    const worker = new Worker(new URL('../workers/obfuscate.worker.ts', import.meta.url), { type: 'module' });
+    
+    worker.onmessage = (e) => {
+      if (e.data.type === 'SUCCESS') {
+        setRawOutputText(e.data.result.rawOutputText);
+        setTokens(e.data.result.tokens);
+        setDiagnostics(e.data.result.diagnostics);
+      } else {
+        console.error('Obfuscation error:', e.data.error);
+      }
+      setIsGenerating(false);
+    };
+
+    worker.postMessage({
+      inputText: computedInputText,
+      keySalt,
+      randomSlider,
+      shuffleSlider,
+      aiSlider,
+      classifierBypass,
+      injectStrategy,
+      textStyle,
+      translitMode,
+      breakTokenizer,
+      payloadSplitting,
+      splitStrategy,
+      splitStyle,
+      splitChunkSize,
+    });
+
+    return () => {
+      worker.terminate();
+    };
+  }, [computedInputText, keySalt, randomSlider, shuffleSlider, aiSlider, classifierBypass, injectStrategy, textStyle, translitMode, breakTokenizer, payloadSplitting, splitStrategy, splitStyle, splitChunkSize]);
 
   const generateNewKey = () => {
     const nextKey = generateSecureKey();
@@ -315,6 +423,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         rawOutputText,
         tokens,
         diagnostics,
+        isGenerating,
         generateNewKey,
         addToHistory,
         clearHistory,
