@@ -50,7 +50,7 @@ const Dropdown = ({
 }) => {
   const selectedOption = options.find(o => o.value === value) || options[0];
   return (
-    <div className="space-y-2.5 flex-shrink-0 relative z-30" ref={containerRef}>
+    <div className={`space-y-2.5 flex-shrink-0 relative ${isOpen ? 'z-50' : 'z-20'}`} ref={containerRef}>
       <label className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans select-none block pb-0.5">
         {label}
       </label>
@@ -159,7 +159,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     setTranslitMode,
     breakTokenizer,
     setBreakTokenizer,
-    targetPlatform,
+    targetPlatform, setTargetPlatform,
     applyTargetPlatform,
     payloadSplitting,
     setPayloadSplitting,
@@ -169,12 +169,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
     setSplitStyle,
     splitChunkSize,
     setSplitChunkSize,
+    jsonImageMode,
+    setJsonImageMode,
     diagnostics,
     generateNewKey,
   } = useApp();
 
   const [activeDropdown, setActiveDropdown] = useState<'platform' | 'strategy' | 'style' | 'translit' | null>(null);
-  const [openAccordion, setOpenAccordion] = useState<string>('Целевая платформа');
+  const [openAccordion, setOpenAccordion] = useState<string>('');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const platformDropdownRef = useRef<HTMLDivElement>(null);
   const styleDropdownRef = useRef<HTMLDivElement>(null);
@@ -183,26 +185,32 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
 
   const handleInjectStrategyChange = (value: string) => {
     setInjectStrategy(value as any);
+    if (targetPlatform !== 'custom') setTargetPlatform('custom');
   };
 
   const handleRandomSliderChange = (value: number) => {
     setRandomSlider(value);
+    if (targetPlatform !== 'custom') setTargetPlatform('custom');
   };
 
   const handleShuffleSliderChange = (value: number) => {
     setShuffleSlider(value);
+    if (targetPlatform !== 'custom') setTargetPlatform('custom');
   };
 
   const handleAiSliderChange = (value: number) => {
     setAiSlider(value);
+    if (targetPlatform !== 'custom') setTargetPlatform('custom');
   };
 
   const handleClassifierBypassChange = (value: number) => {
     setClassifierBypass(value);
+    if (targetPlatform !== 'custom') setTargetPlatform('custom');
   };
 
   const handleBreakTokenizerChange = (value: boolean) => {
     setBreakTokenizer(value);
+    if (targetPlatform !== 'custom') setTargetPlatform('custom');
   };
 
   useEffect(() => {
@@ -692,6 +700,37 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                       </motion.div>
                     )}
                   </AnimatePresence>
+                </div>
+              </div>
+            </AccordionSection>
+
+            <AccordionSection 
+              title="JSON для картинок" 
+              isOpen={openAccordion === 'JSON для картинок'}
+              onToggle={() => setOpenAccordion(openAccordion === 'JSON для картинок' ? '' : 'JSON для картинок')}
+            >
+              <div className="space-y-4">
+                <div className="space-y-1.5 flex-shrink-0">
+                  <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex flex-col pr-2">
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 font-sans group-hover:text-brand-500 transition-colors">
+                        Разбор промта в JSON
+                      </span>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                        Автоматически классифицирует промт на объект, стиль, свет, ракурс, палитру, качество и параметры.
+                      </span>
+                    </div>
+                    <div className="relative flex-shrink-0">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only" 
+                        checked={jsonImageMode} 
+                        onChange={(e) => setJsonImageMode(e.target.checked)} 
+                      />
+                      <div className={`block w-8 h-4.5 rounded-full transition-colors ${jsonImageMode ? 'bg-brand-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                      <div className={`dot absolute left-0.5 top-0.5 bg-white w-3.5 h-3.5 rounded-full transition-transform ${jsonImageMode ? 'transform translate-x-3.5' : ''}`}></div>
+                    </div>
+                  </label>
                 </div>
               </div>
             </AccordionSection>

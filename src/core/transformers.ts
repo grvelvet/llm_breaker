@@ -6,8 +6,9 @@ const RE_IS_WORD = /^\p{L}+$/u;
 
 // Перемешивание слов с сохранением разметки
 export function stableShuffleWords(originalText: string, rate: number, keySalt: string): string {
+  const safeText = typeof originalText === 'string' ? originalText : String(originalText ?? '');
   // Разделяем слова и другие символы
-  const matches = originalText.match(RE_SHUFFLE_SPLIT) || [];
+  const matches = safeText.match(RE_SHUFFLE_SPLIT) || [];
   const tokens = matches.map((val) => ({
     value: val,
     isWord: RE_IS_WORD.test(val),
@@ -50,9 +51,10 @@ export function stableShuffleWords(originalText: string, rate: number, keySalt: 
 }
 
 export function stableInjectTypos(originalText: string, rate: number, keySalt: string): string {
-  if (rate <= 0) return originalText;
+  const safeText = typeof originalText === 'string' ? originalText : String(originalText ?? '');
+  if (rate <= 0) return safeText;
 
-  const matches = originalText.match(RE_SHUFFLE_SPLIT) || [];
+  const matches = safeText.match(RE_SHUFFLE_SPLIT) || [];
   const saltHash = fnv1a(keySalt || 'DEFAULT');
 
   const russianNeighbors: Record<string, string> = {

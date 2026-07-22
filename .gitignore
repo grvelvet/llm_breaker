@@ -7,3 +7,7 @@ coverage/
 .env*
 !.env.example
 gem_mem.md
+*.tmp
+build_output.txt
+.vscode/
+.idea/

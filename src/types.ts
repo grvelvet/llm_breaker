@@ -31,6 +31,7 @@ export interface HistoryEntry {
   splitStrategy?: SplitStrategy;
   splitStyle?: SplitStyle;
   splitChunkSize?: number;
+  jsonImageMode?: boolean;
 }
 
 export interface Diagnostics {

@@ -1,6 +1,7 @@
+import { useAppStore } from '../store';
 import React, { useState, useMemo, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { Eye, EyeOff, Clipboard, Check, Trash2, History, ArrowUpRight } from 'lucide-react';
+import { Eye, EyeOff, Clipboard, Check, Trash2, History, ArrowUpRight, FileJson } from 'lucide-react';
 import { copyToClipboard } from '../utils/clipboard';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { ProcessedToken, HistoryEntry } from '../types';
@@ -38,7 +39,9 @@ export const Workspace: React.FC = () => {
         addToHistory,
     historyArray,
     restoreHistoryEntry,
-    isGenerating,
+    jsonImageMode,
+    setJsonImageMode,
+    isProcessing,
   } = useApp();
 
   const [copied, setCopied] = useState<boolean>(false);
@@ -126,7 +129,7 @@ export const Workspace: React.FC = () => {
                 </button>
               )}
               <span id="charCount" className="text-xs font-mono text-slate-400 dark:text-slate-500 select-none">
-                {inputText.length} / {rawOutputText.length} символов
+                Ввод: {inputText.length} | Вывод: {rawOutputText.length}
               </span>
             </div>
           </div>
@@ -136,6 +139,16 @@ export const Workspace: React.FC = () => {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => {
+                if (e.key === 'z' && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+                  e.preventDefault();
+                  useAppStore.getState().undo();
+                  return;
+                }
+                if ((e.key === 'y' && (e.ctrlKey || e.metaKey)) || (e.key === 'z' && (e.ctrlKey || e.metaKey) && e.shiftKey)) {
+                  e.preventDefault();
+                  useAppStore.getState().redo();
+                  return;
+                }
                 if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                   handleCopy();
                 }
@@ -149,10 +162,31 @@ export const Workspace: React.FC = () => {
         {/* Результат (OutputCard) */}
         <div className={`flex-1 flex-col min-h-[220px] flex-shrink-0 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl overflow-hidden ${isKeyboardOpen ? 'hidden md:flex' : 'flex'}`}>
           <div className="flex justify-between items-center h-12 px-4 bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0 gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans select-none">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans select-none flex items-center gap-2">
               Результат
+              {isProcessing && (
+                <div className="flex space-x-1 items-center ml-1">
+                  <div className="w-1 h-1 bg-brand-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                  <div className="w-1 h-1 bg-brand-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                  <div className="w-1 h-1 bg-brand-500 rounded-full animate-bounce"></div>
+                </div>
+              )}
             </span>
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setJsonImageMode(!jsonImageMode)}
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all select-none cursor-pointer border ${
+                  jsonImageMode
+                    ? 'bg-brand-500 text-white border-brand-500 shadow-sm shadow-brand-500/20'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-200/60 dark:hover:bg-slate-700/60'
+                }`}
+                title="Переключить автоматический разбор промта в JSON для генераторов картинок"
+              >
+                <FileJson className="w-3.5 h-3.5" />
+                <span>JSON Промт</span>
+              </button>
+
               <button
                 id="toggleView"
                 onClick={() => setIsHighlightEnabled(!isHighlightEnabled)}
@@ -174,12 +208,7 @@ export const Workspace: React.FC = () => {
                 isHighlightEnabled ? 'show-indicators' : ''
               }`}
             >
-              {isGenerating ? (
-                <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
-                   <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
-                   <span className="text-sm">Генерация...</span>
-                </div>
-              ) : tokens.length === 0 ? (
+              {tokens.length === 0 ? (
                 <span className="text-slate-400/80 select-none text-sm">Обфусцированный текст...</span>
               ) : !isHighlightEnabled ? (
                 rawOutputText

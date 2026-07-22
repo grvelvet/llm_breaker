@@ -22,6 +22,8 @@ export interface ObfuscationParams {
   splitStrategy?: SplitStrategy;
   splitStyle?: SplitStyle;
   splitChunkSize?: number;
+  jsonImageMode?: boolean;
+  parsedJsonObj?: Record<string, any>;
 }
 
 export interface ObfuscationResult {
@@ -46,10 +48,86 @@ export function obfuscateText(params: ObfuscationParams): ObfuscationResult {
     splitStrategy = 'simple',
     splitStyle = 'algebraic',
     splitChunkSize = 3,
+    jsonImageMode = false,
+    parsedJsonObj,
   } = params;
 
+  
+  const safeInput = typeof inputText === 'string' ? inputText : String(inputText ?? '');
+
+  if (jsonImageMode && safeInput.trim() && parsedJsonObj) {
+    const combinedTokens: ProcessedToken[] = [];
+    let replacedCount = 0;
+    let markerCount = 0;
+
+    const processObject = (obj: any, indent: string): void => {
+      combinedTokens.push({ type: 'text', char: '{\n' });
+      const keys = Object.keys(obj);
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const value = obj[key];
+
+        combinedTokens.push({ type: 'text', char: `${indent}  "${key}": ` });
+
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+           processObject(value, indent + '  ');
+        } else if (Array.isArray(value)) {
+           combinedTokens.push({ type: 'text', char: '[\n' });
+           for (let j = 0; j < value.length; j++) {
+             combinedTokens.push({ type: 'text', char: `${indent}    "` });
+             const subResult = obfuscateText({
+                ...params,
+                inputText: value[j],
+                jsonImageMode: false,
+                parsedJsonObj: undefined
+             });
+             combinedTokens.push(...subResult.tokens);
+             replacedCount += subResult.diagnostics.replacedCount;
+             markerCount += subResult.diagnostics.markerCount;
+             combinedTokens.push({ type: 'text', char: j < value.length - 1 ? '",\n' : '"\n' });
+           }
+           combinedTokens.push({ type: 'text', char: `${indent}  ]` });
+        } else {
+           combinedTokens.push({ type: 'text', char: '"' });
+           const subResult = obfuscateText({
+              ...params,
+              inputText: String(value),
+              jsonImageMode: false,
+              parsedJsonObj: undefined
+           });
+           combinedTokens.push(...subResult.tokens);
+           replacedCount += subResult.diagnostics.replacedCount;
+           markerCount += subResult.diagnostics.markerCount;
+           combinedTokens.push({ type: 'text', char: '"' });
+        }
+
+        if (i < keys.length - 1) {
+          combinedTokens.push({ type: 'text', char: ',\n' });
+        } else {
+          combinedTokens.push({ type: 'text', char: '\n' });
+        }
+      }
+      combinedTokens.push({ type: 'text', char: `${indent}}` });
+    };
+
+    processObject(parsedJsonObj, '');
+
+    const rawOutputText = combinedTokens.map(t => t.char).join('');
+
+    return {
+      rawOutputText,
+      tokens: combinedTokens,
+      diagnostics: {
+        replacedCount,
+        markerCount,
+        entropyLevel: replacedCount > 10 ? 'Максимальная' : replacedCount > 0 ? 'Средняя' : 'Низкая',
+        tokenImpact: markerCount
+      }
+    };
+  }
+
   // Приведение к прекомпозиционной схеме (NFC)
-  let text = inputText.normalize('NFC');
+  let text = safeInput.normalize('NFC');
   
   if (translitMode && translitMode !== 'none') {
     text = transliterateText(text, translitMode);
