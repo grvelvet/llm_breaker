@@ -112,7 +112,7 @@ export const Workspace: React.FC = () => {
       <div className="flex-1 flex flex-col gap-4 md:gap-5 min-h-0 overflow-y-auto pb-1 md:pb-0">
         {/* Исходный текст (InputCard) */}
         <div className="flex-1 flex flex-col min-h-[220px] flex-shrink-0 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl overflow-hidden">
-          <div className="flex justify-between items-center h-12 px-4 bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0">
+          <div className="flex justify-between items-center h-12 px-4 bg-slate-50/80 dark:bg-slate-950/40 border-b border-slate-100 dark:border-slate-800/80 flex-shrink-0">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans select-none">
               Исходный текст
             </span>
@@ -161,7 +161,7 @@ export const Workspace: React.FC = () => {
 
         {/* Результат (OutputCard) */}
         <div className={`flex-1 flex-col min-h-[220px] flex-shrink-0 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl overflow-hidden ${isKeyboardOpen ? 'hidden md:flex' : 'flex'}`}>
-          <div className="flex justify-between items-center h-12 px-4 bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0 gap-2">
+          <div className="flex justify-between items-center h-12 px-4 bg-slate-50/80 dark:bg-slate-950/40 border-b border-slate-100 dark:border-slate-800/80 flex-shrink-0 gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans select-none flex items-center gap-2">
               Результат
               {isProcessing && (
@@ -301,7 +301,7 @@ export const Workspace: React.FC = () => {
               return (
                 <div
                   key={entry.id}
-                  className="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800/45 rounded-xl transition-colors border border-slate-100 dark:border-slate-800/60"
+                  className="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-800/45 rounded-xl transition-colors border border-slate-100 dark:border-slate-800/60"
                 >
                   <button
                     onClick={() => restoreHistoryEntry(entry)}

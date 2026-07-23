@@ -1,24 +1,34 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useApp } from './context/AppContext';
 import { Header } from './components/Header';
 import { Workspace } from './components/Workspace';
 import { SettingsPanel } from './components/SettingsPanel';
 import { HistoryModal } from './components/HistoryModal';
 
-export default function App() {
+function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState<boolean>(false);
+  const { isDarkMode } = useApp();
+
+  // Ensure documentElement has 'dark' class synced with state
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   // Auto-expand settings sidebar by default on desktop viewports
-  React.useEffect(() => {
+  useEffect(() => {
     if (window.innerWidth >= 768) {
       setIsSettingsOpen(true);
     }
   }, []);
 
   return (
-    <AppProvider>
+    <>
       <Toaster position="bottom-right" />
       <div className="h-[100dvh] w-full flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-250 antialiased font-sans">
         <div className="flex-1 h-full flex flex-col max-w-7xl w-full mx-auto px-4 md:px-6 lg:px-8 pb-1 md:pb-1 min-h-0 safe-pt">
@@ -56,6 +66,14 @@ export default function App() {
 
         </div>
       </div>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <AppProvider>
+      <AppContent />
     </AppProvider>
   );
 }

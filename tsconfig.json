@@ -25,5 +25,6 @@
     "strict": true,
     "noUnusedLocals": true,
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "exclude": ["dist"]
 }

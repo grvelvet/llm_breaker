@@ -58,7 +58,7 @@ const Dropdown = ({
         <button
           type="button"
           onClick={onToggle}
-          className="w-full flex items-center justify-between pl-3.5 pr-3 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg outline-none text-slate-800 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-900/40 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 cursor-pointer transition-all font-sans font-medium select-none"
+          className="w-full flex items-center justify-between pl-3.5 pr-3 py-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-700/50 rounded-lg outline-none text-slate-800 dark:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-900/40 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 cursor-pointer transition-all font-sans font-medium select-none"
         >
           <span className="truncate">{selectedOption.label}</span>
           <ChevronDown className={`h-4 w-4 text-slate-500 dark:text-slate-400 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`} />
@@ -70,7 +70,7 @@ const Dropdown = ({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -4, scale: 0.98 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-0 right-0 z-50 mt-1.5 py-1.5 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg shadow-xl max-h-60 overflow-y-auto focus:outline-none"
+              className="absolute left-0 right-0 z-50 mt-1.5 py-1.5 bg-white dark:bg-slate-950 border border-slate-200/80 dark:border-slate-700/50 rounded-lg shadow-xl max-h-60 overflow-y-auto focus:outline-none"
             >
               {options.map((option) => {
                 const isSelected = value === option.value;
@@ -106,7 +106,7 @@ const Dropdown = ({
 
 const AccordionSection = ({ title, children, isOpen, onToggle }: { title: string, children: React.ReactNode, isOpen: boolean, onToggle: () => void }) => {
   return (
-    <div className="flex flex-col border-b border-brand-100/50 dark:border-brand-900/30 pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
+    <div className="flex flex-col border-b border-brand-100/50 dark:border-slate-700/50 pb-5 mb-5 last:border-0 last:pb-0 last:mb-0">
       <button 
         type="button" 
         onClick={onToggle}
@@ -317,10 +317,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             exit="hidden"
             variants={drawerVariants}
             transition={drawerTransition}
-            className="fixed inset-y-0 right-0 z-50 h-[100dvh] max-w-sm sm:max-w-md w-full bg-white dark:bg-slate-900 border-l border-slate-200/80 dark:border-slate-800/80 flex flex-col focus:outline-none transition-colors duration-200 safe-pb md:static md:inset-auto md:z-10 md:h-full md:w-72 lg:w-80 md:max-w-none md:border md:rounded-2xl md:flex-shrink-0 md:pb-0"
+            className="fixed inset-y-0 right-0 z-50 h-[100dvh] max-w-sm sm:max-w-md w-full bg-white dark:bg-slate-900 border-l border-slate-200/80 dark:border-slate-700/50 flex flex-col focus:outline-none transition-colors duration-200 safe-pb md:static md:inset-auto md:z-10 md:h-full md:w-72 lg:w-80 md:max-w-none md:border md:rounded-2xl md:flex-shrink-0 md:pb-0"
           >
             {/* Header section */}
-            <div className="flex items-center justify-between px-6 py-4 bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 bg-slate-50/80 dark:bg-slate-950/40 border-b border-slate-100 dark:border-slate-700/50 flex-shrink-0">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 font-sans select-none">
                 Параметры обфускации
               </h2>
@@ -366,7 +366,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                           className={`px-3.5 py-2 text-xs cursor-pointer flex items-start gap-2.5 transition-colors rounded-lg border ${
                             isSelected
                               ? 'bg-brand-50/55 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 font-medium border-brand-500/30'
-                              : 'bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-800/80 text-slate-700 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-900/40'
+                              : 'bg-slate-50 dark:bg-slate-950 border-slate-200/80 dark:border-slate-700/50 text-slate-700 dark:text-slate-300 hover:bg-slate-100/50 dark:hover:bg-slate-900/40'
                           }`}
                         >
                           {PlatformIcon && (
@@ -398,7 +398,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
               >
                 {/* Группа 1: Сигнатуры и Опечатки */}
                 <div className="space-y-4">
-                  <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/60 pb-1.5">
+                  <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50 pb-1.5">
                     Сигнатуры и Опечатки
                   </h4>
 
@@ -471,7 +471,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
 
               {/* Группа 2: Стилизация и Транслитерация */}
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/60 pb-1.5">
+                <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50 pb-1.5">
                   Стилизация текста
                 </h4>
 
@@ -513,7 +513,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
 
               {/* Группа 3: Обход ИИ и Управление */}
               <div className="space-y-4">
-                <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800/60 pb-1.5">
+                <h4 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider border-b border-slate-100 dark:border-slate-700/50 pb-1.5">
                   Обход ИИ и Управление
                 </h4>
 
@@ -574,7 +574,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                     id="cryptKey"
                     value={keySalt}
                     onChange={(e) => setKeySalt(e.target.value)}
-                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 text-slate-800 dark:text-slate-100 transition-colors"
+                    className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-700/50 rounded-lg outline-none focus:ring-1 focus:ring-brand-500 text-slate-800 dark:text-slate-100 transition-colors"
                   />
                 </div>
               </div>
@@ -614,7 +614,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
                         animate={{ opacity: 1, height: 'auto' }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="pt-2 pb-1 space-y-3 overflow-hidden border-t border-slate-100 dark:border-slate-800/50 mt-2"
+                        className="pt-2 pb-1 space-y-3 overflow-hidden border-t border-slate-100 dark:border-slate-800 mt-2"
                       >
                         {/* Strategy selection */}
                         <div className="space-y-1.5">
@@ -738,7 +738,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose })
             </div>
 
             {/* Diagnostic stats (sticky/anchored at footer) */}
-            <div className="mt-auto p-4 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-slate-400 space-y-1.5 font-mono flex-shrink-0 select-none bg-slate-50/50 dark:bg-slate-900/50 relative z-0">
+            <div className="mt-auto p-4 border-t border-slate-100 dark:border-slate-700/50 text-[11px] text-slate-400 space-y-1.5 font-mono flex-shrink-0 select-none bg-slate-50/80 dark:bg-slate-950/40 relative z-0">
               <div className="flex justify-between">
                 <span>Общая устойчивость:</span>
                 <span id="diagEntropy" className={`font-bold transition-all duration-300 ${entropyColorClass}`}>

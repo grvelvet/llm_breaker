@@ -216,7 +216,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                 return (
                   <li
                     key={entry.id}
-                    className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/40 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800/80 rounded-xl text-xs transition-colors hover:border-slate-200/80 dark:hover:border-slate-700/80"
+                    className="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/40 dark:bg-slate-950/40 border border-slate-100 dark:border-slate-800/80 rounded-xl text-xs transition-colors hover:border-slate-200/80 dark:hover:border-slate-700/80"
                   >
                     {/* Левый информационный блок */}
                     <div className="space-y-1 flex-1 min-h-0">
@@ -263,7 +263,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose }) =
                         className={`px-3 py-1.5 font-bold rounded transition-colors text-[10px] flex items-center gap-1 focus:outline-none focus:ring-1 focus:ring-brand-500/20 ${
                           isCopied
                             ? 'bg-emerald-600 text-white'
-                            : 'bg-slate-100 hover:bg-slate-170 dark:bg-slate-850 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 border border-slate-200/20 dark:border-slate-800/20 shadow-sm'
+                            : 'bg-slate-100 hover:bg-slate-170 dark:bg-slate-850 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 border border-slate-200/20 dark:border-slate-700/50 shadow-sm'
                         }`}
                       >
                         {isCopied ? (

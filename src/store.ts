@@ -91,8 +91,17 @@ const loadDarkMode = () => {
     const saved = localStorage.getItem('omoglyph_dark_mode');
     if (saved !== null) return saved === 'true';
   } catch (_e) { /* ignore */ }
-  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
 };
+
+const initialDarkMode = loadDarkMode();
+if (typeof document !== 'undefined') {
+  if (initialDarkMode) {
+    document.documentElement.classList.add('dark');
+  } else {
+    document.documentElement.classList.remove('dark');
+  }
+}
 
 const s = loadSettings();
 
@@ -201,9 +210,16 @@ export const useAppStore = create<AppState>((set, get) => ({
     set(state);
   },
 
-  isDarkMode: loadDarkMode(),
+  isDarkMode: initialDarkMode,
   setIsDarkMode: (val) => {
     localStorage.setItem('omoglyph_dark_mode', String(val));
+    if (typeof document !== 'undefined') {
+      if (val) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
     set({ isDarkMode: val });
   },
   
